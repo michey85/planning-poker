@@ -13,8 +13,9 @@ export default function ParticipantsList() {
         Participants
       </h2>
       <ul className="flex flex-col gap-1">
-        {votes.map((vote) => {
+        {votes.map((vote, index) => {
           const isCurrentUser = vote.user_name === userName;
+          const hasVoted = vote.value !== null;
           return (
             <li
               key={vote.id}
@@ -26,13 +27,27 @@ export default function ParticipantsList() {
                 {vote.user_name}
                 {isCurrentUser && ' (you)'}
               </span>
-              <span className="font-mono">
-                {isRevealed
-                  ? (vote.value ?? '—')
-                  : vote.value !== null
-                    ? '✓'
-                    : '⏳'}
-              </span>
+              <div
+                className={`card-flip ${isRevealed ? 'card-flipped' : ''}`}
+                style={
+                  {
+                    '--flip-delay': `${index * 0.1}s`,
+                  } as React.CSSProperties
+                }
+              >
+                <div className="card-inner h-6 w-8">
+                  <div className="card-front flex h-full w-full items-center justify-center">
+                    <span className="font-mono text-sm font-bold">
+                      {vote.value ?? '—'}
+                    </span>
+                  </div>
+                  <div className="card-back flex h-full w-full items-center justify-center">
+                    <span className="font-mono text-sm">
+                      {hasVoted ? '✓' : '⏳'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </li>
           );
         })}

@@ -36,7 +36,10 @@ export async function revealVotes(sessionId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function resetSession(sessionId: string): Promise<void> {
+export async function resetSession(
+  sessionId: string,
+  taskName?: string,
+): Promise<void> {
   const { error: votesError } = await supabase
     .from('votes')
     .update({ value: null })
@@ -44,9 +47,16 @@ export async function resetSession(sessionId: string): Promise<void> {
 
   if (votesError) throw votesError;
 
+  const sessionUpdate: { is_revealed: boolean; task_name?: string } = {
+    is_revealed: false,
+  };
+  if (taskName !== undefined) {
+    sessionUpdate.task_name = taskName;
+  }
+
   const { error: sessionError } = await supabase
     .from('sessions')
-    .update({ is_revealed: false })
+    .update(sessionUpdate)
     .eq('id', sessionId);
 
   if (sessionError) throw sessionError;

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useEffect, useRef, useState } from 'react';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
+import { useVotingStore } from '@/store/useVotingStore';
 import ParticipantsList from './ParticipantsList';
 import TaskHeader from './TaskHeader';
 import UsernamePrompt from './UsernamePrompt';
@@ -13,6 +13,8 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const userName = useVotingStore((s) => s.userName);
   const isRevealed = useVotingStore((s) => s.isRevealed);
   const storeSessionId = useVotingStore((s) => s.sessionId);
+  const taskName = useVotingStore((s) => s.taskName);
+  const votes = useVotingStore((s) => s.votes);
   const joinSession = useVotingStore((s) => s.joinSession);
   const revealCards = useVotingStore((s) => s.revealCards);
   const resetVoting = useVotingStore((s) => s.resetVoting);
@@ -21,12 +23,34 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showNewRound, setShowNewRound] = useState(false);
+  const [newTaskName, setNewTaskName] = useState('');
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const allVoted = votes.length > 0 && votes.every((v) => v.value !== null);
 
   useEffect(() => {
     joinSession(sessionId)
       .catch(() => setError('Session not found.'))
       .finally(() => setLoading(false));
   }, [sessionId, joinSession]);
+
+  useEffect(() => {
+    if (showNewRound) {
+      inputRef.current?.focus();
+    }
+  }, [showNewRound]);
+
+  const handleNewRound = () => {
+    setNewTaskName(taskName ?? '');
+    setShowNewRound(true);
+  };
+
+  const confirmNewRound = () => {
+    const name = newTaskName.trim();
+    resetVoting(name && name !== taskName ? name : undefined);
+    setShowNewRound(false);
+  };
 
   if (loading) {
     return (
@@ -57,20 +81,48 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
       )}
       <TaskHeader />
       <VotingCards />
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3">
         {!isRevealed ? (
           <button
             type="button"
             onClick={() => revealCards()}
-            className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            className={`w-fit rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover ${
+              allVoted ? 'animate-pulse' : ''
+            }`}
           >
             Reveal Cards
           </button>
+        ) : showNewRound ? (
+          <div className="flex items-center gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={newTaskName}
+              onChange={(e) => setNewTaskName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && confirmNewRound()}
+              placeholder="Task name for next round"
+              className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={confirmNewRound}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            >
+              Start Round
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowNewRound(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
+            >
+              Cancel
+            </button>
+          </div>
         ) : (
           <button
             type="button"
-            onClick={() => resetVoting()}
-            className="rounded-lg border border-accent bg-transparent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
+            onClick={handleNewRound}
+            className="w-fit rounded-lg border border-accent bg-transparent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
           >
             New Round
           </button>

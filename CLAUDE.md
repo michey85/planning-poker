@@ -24,6 +24,7 @@ No test framework is configured yet.
 - **Next.js 16** with App Router, React 19, TypeScript (strict mode)
 - **React Compiler** enabled via `next.config.ts`
 - **Tailwind CSS 4** via `@tailwindcss/postcss`
+Tailwind 4 with no config file (uses CSS-based configuration)
 - **Zustand 5** for client-side state management
 - **Supabase** for PostgreSQL database and real-time WebSocket subscriptions
 - **Biome** for linting and formatting (replaces ESLint + Prettier)

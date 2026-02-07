@@ -11,6 +11,14 @@ export default function TaskHeader() {
 
   const votedCount = votes.filter((v) => v.value !== null).length;
   const totalCount = votes.length;
+  const progress = totalCount > 0 ? (votedCount / totalCount) * 100 : 0;
+
+  const barColor =
+    progress >= 100
+      ? 'bg-green-500'
+      : progress >= 50
+        ? 'bg-amber-500'
+        : 'bg-border';
 
   const copyId = async () => {
     if (!sessionId) return;
@@ -35,6 +43,14 @@ export default function TaskHeader() {
           {votedCount} of {totalCount} voted
         </span>
       </div>
+      {totalCount > 0 && (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

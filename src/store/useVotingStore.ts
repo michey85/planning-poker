@@ -17,7 +17,7 @@ interface VotingState {
   createSession: (taskName: string) => Promise<string>;
   castVote: (value: CardValue) => Promise<void>;
   revealCards: () => Promise<void>;
-  resetVoting: () => Promise<void>;
+  resetVoting: (taskName?: string) => Promise<void>;
   syncVotes: (votes: Vote[]) => void;
   addVote: (vote: Vote) => void;
   updateVote: (vote: Vote) => void;
@@ -83,14 +83,15 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     set({ isRevealed: true });
   },
 
-  resetVoting: async () => {
+  resetVoting: async (taskName?: string) => {
     const { sessionId } = get();
     if (!sessionId) throw new Error('No active session');
-    await db.resetSession(sessionId);
+    await db.resetSession(sessionId, taskName);
     set((state) => ({
       isRevealed: false,
       currentUserVote: null,
       votes: state.votes.map((v) => ({ ...v, value: null })),
+      ...(taskName !== undefined ? { taskName } : {}),
     }));
   },
 
