@@ -12,7 +12,7 @@ interface VotingState {
 
   votes: Vote[];
 
-  setUserName: (name: string) => void;
+  setUserName: (name: string) => Promise<void>;
   joinSession: (sessionId: string) => Promise<void>;
   createSession: (taskName: string) => Promise<string>;
   castVote: (value: CardValue) => Promise<void>;
@@ -36,7 +36,13 @@ const initialState = {
 export const useVotingStore = create<VotingState>((set, get) => ({
   ...initialState,
 
-  setUserName: (name) => set({ userName: name }),
+  setUserName: async (name) => {
+    set({ userName: name });
+    const { sessionId } = get();
+    if (sessionId) {
+      await db.castVote(sessionId, name, null);
+    }
+  },
 
   joinSession: async (sessionId) => {
     const session = await db.getSession(sessionId);
@@ -81,7 +87,11 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     const { sessionId } = get();
     if (!sessionId) throw new Error('No active session');
     await db.resetSession(sessionId);
-    set({ isRevealed: false, votes: [], currentUserVote: null });
+    set((state) => ({
+      isRevealed: false,
+      currentUserVote: null,
+      votes: state.votes.map((v) => ({ ...v, value: null })),
+    }));
   },
 
   syncVotes: (votes) => set({ votes }),

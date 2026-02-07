@@ -39,7 +39,7 @@ export async function revealVotes(sessionId: string): Promise<void> {
 export async function resetSession(sessionId: string): Promise<void> {
   const { error: votesError } = await supabase
     .from('votes')
-    .delete()
+    .update({ value: null })
     .eq('session_id', sessionId);
 
   if (votesError) throw votesError;
@@ -57,7 +57,7 @@ export async function resetSession(sessionId: string): Promise<void> {
 export async function castVote(
   sessionId: string,
   userName: string,
-  value: CardValue,
+  value: CardValue | null,
 ): Promise<Vote> {
   const { data, error } = await supabase
     .from('votes')
