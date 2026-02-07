@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
-import { useVotingStore } from '@/store/useVotingStore';
+import { selectIsModerator, useVotingStore } from '@/store/useVotingStore';
 import ParticipantsList from './ParticipantsList';
 import TaskHeader from './TaskHeader';
 import UsernamePrompt from './UsernamePrompt';
@@ -18,6 +18,7 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const joinSession = useVotingStore((s) => s.joinSession);
   const revealCards = useVotingStore((s) => s.revealCards);
   const resetVoting = useVotingStore((s) => s.resetVoting);
+  const isModerator = useVotingStore(selectIsModerator);
 
   const { connectionStatus } = useRealtimeVotes(storeSessionId);
 
@@ -25,8 +26,11 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const [error, setError] = useState('');
   const [showNewRound, setShowNewRound] = useState(false);
   const [newTaskName, setNewTaskName] = useState('');
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
   const allVoted = votes.length > 0 && votes.every((v) => v.value !== null);
 
   useEffect(() => {
@@ -41,15 +45,35 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
     }
   }, [showNewRound]);
 
+  useEffect(() => {
+    if (userName) {
+      mainRef.current?.focus();
+    }
+  }, [userName]);
+
   const handleNewRound = () => {
     setNewTaskName(taskName ?? '');
     setShowNewRound(true);
   };
 
-  const confirmNewRound = () => {
+  const handleReveal = async () => {
+    setIsRevealing(true);
+    try {
+      await revealCards();
+    } finally {
+      setIsRevealing(false);
+    }
+  };
+
+  const confirmNewRound = async () => {
     const name = newTaskName.trim();
-    resetVoting(name && name !== taskName ? name : undefined);
-    setShowNewRound(false);
+    setIsResetting(true);
+    try {
+      await resetVoting(name && name !== taskName ? name : undefined);
+      setShowNewRound(false);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   if (loading) {
@@ -73,9 +97,17 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10">
+    <div
+      ref={mainRef}
+      tabIndex={-1}
+      className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10 outline-none"
+    >
       {connectionStatus === 'error' && (
-        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="animate-fade-in rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700"
+        >
           Realtime connection lost. Updates may be delayed.
         </div>
       )}
@@ -83,49 +115,65 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
       <VotingCards />
       <div className="flex flex-col gap-3">
         {!isRevealed ? (
-          <button
-            type="button"
-            onClick={() => revealCards()}
-            className={`w-fit rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover ${
-              allVoted ? 'animate-pulse' : ''
-            }`}
-          >
-            Reveal Cards
-          </button>
-        ) : showNewRound ? (
-          <div className="flex items-center gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newTaskName}
-              onChange={(e) => setNewTaskName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && confirmNewRound()}
-              placeholder="Task name for next round"
-              className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
-            />
+          isModerator ? (
             <button
               type="button"
-              onClick={confirmNewRound}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+              onClick={handleReveal}
+              disabled={isRevealing}
+              className={`w-fit rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50 ${
+                allVoted && !isRevealing ? 'animate-pulse' : ''
+              }`}
             >
-              Start Round
+              {isRevealing ? 'Revealing...' : 'Reveal Cards'}
             </button>
+          ) : (
+            <p className="text-sm text-foreground/60">
+              Waiting for moderator to reveal...
+            </p>
+          )
+        ) : isModerator ? (
+          showNewRound ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                ref={inputRef}
+                type="text"
+                value={newTaskName}
+                onChange={(e) => setNewTaskName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && confirmNewRound()}
+                placeholder="Task name for next round"
+                className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={confirmNewRound}
+                  disabled={isResetting}
+                  className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+                >
+                  {isResetting ? 'Starting...' : 'Start Round'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewRound(false)}
+                  className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
             <button
               type="button"
-              onClick={() => setShowNewRound(false)}
-              className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
+              onClick={handleNewRound}
+              className="w-fit rounded-lg border border-accent bg-transparent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
             >
-              Cancel
+              New Round
             </button>
-          </div>
+          )
         ) : (
-          <button
-            type="button"
-            onClick={handleNewRound}
-            className="w-fit rounded-lg border border-accent bg-transparent px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
-          >
-            New Round
-          </button>
+          <p className="text-sm text-foreground/60">
+            Waiting for next round...
+          </p>
         )}
       </div>
       {isRevealed && <VotingResults />}

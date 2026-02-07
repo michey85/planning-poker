@@ -1,14 +1,21 @@
 'use client';
 
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useVotingStore } from '@/store/useVotingStore';
 
 export default function UsernamePrompt() {
   const setUserName = useVotingStore((s) => s.setUserName);
+  const votes = useVotingStore((s) => s.votes);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmed = name.trim();
 
@@ -22,7 +29,21 @@ export default function UsernamePrompt() {
       return;
     }
 
-    setUserName(trimmed);
+    if (
+      votes.some((v) => v.user_name.toLowerCase() === trimmed.toLowerCase())
+    ) {
+      setError('This name is already taken.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await setUserName(trimmed);
+    } catch {
+      setError('Failed to join. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -40,6 +61,7 @@ export default function UsernamePrompt() {
             Name
           </label>
           <input
+            ref={inputRef}
             id="userName"
             type="text"
             value={name}
@@ -50,14 +72,21 @@ export default function UsernamePrompt() {
             placeholder="e.g., Alice"
             className="rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-accent"
             autoComplete="off"
+            disabled={isLoading}
+            aria-describedby={error ? 'userName-error' : undefined}
           />
-          {error && <p className="text-sm text-error">{error}</p>}
+          {error && (
+            <p id="userName-error" className="text-sm text-error">
+              {error}
+            </p>
+          )}
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          disabled={isLoading}
+          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
-          Join
+          {isLoading ? 'Joining...' : 'Join'}
         </button>
       </form>
     </div>

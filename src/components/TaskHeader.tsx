@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { pushToast } from '@/lib/toast';
 import { useVotingStore } from '@/store/useVotingStore';
 
 export default function TaskHeader() {
@@ -22,8 +23,9 @@ export default function TaskHeader() {
 
   const copyId = async () => {
     if (!sessionId) return;
-    await navigator.clipboard.writeText(sessionId);
+    await navigator.clipboard.writeText(window.location.href);
     setCopied(true);
+    pushToast('Session link copied!', 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -34,12 +36,13 @@ export default function TaskHeader() {
         <button
           type="button"
           onClick={copyId}
+          aria-label="Copy session link"
           className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 font-mono text-xs transition-colors hover:border-accent"
         >
           {sessionId?.slice(0, 8)}...
           <span>{copied ? '✓' : '⎘'}</span>
         </button>
-        <span>
+        <span aria-live="polite">
           {votedCount} of {totalCount} voted
         </span>
       </div>

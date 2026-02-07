@@ -68,11 +68,14 @@ export default function VotingResults() {
     numericVotes.length > 0 ? getConsensusLevel(numericVotes) : null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border p-4">
+    <div
+      className="animate-fade-in flex flex-col gap-3 rounded-lg border border-border p-4"
+      aria-live="polite"
+    >
       <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground/60">
         Results
       </h2>
-      <div className="flex items-center gap-6">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-6">
         <div className="flex flex-col">
           <span className="text-2xl font-bold">{average}</span>
           <span className="text-xs text-foreground/60">Average</span>

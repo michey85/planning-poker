@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as db from '@/lib/database';
+import { pushToast } from '@/lib/toast';
 import type { CardValue, Vote } from '@/types';
 
 interface VotingState {
@@ -70,29 +71,49 @@ export const useVotingStore = create<VotingState>((set, get) => ({
   },
 
   castVote: async (value) => {
-    const { sessionId, userName } = get();
+    const { sessionId, userName, currentUserVote: prevVote } = get();
     if (!sessionId || !userName) throw new Error('No active session or user');
     set({ currentUserVote: value });
-    await db.castVote(sessionId, userName, value);
+    try {
+      await db.castVote(sessionId, userName, value);
+    } catch {
+      set({ currentUserVote: prevVote });
+      pushToast('Failed to cast vote. Please try again.', 'error');
+    }
   },
 
   revealCards: async () => {
     const { sessionId } = get();
     if (!sessionId) throw new Error('No active session');
-    await db.revealVotes(sessionId);
-    set({ isRevealed: true });
+    try {
+      await db.revealVotes(sessionId);
+      set({ isRevealed: true });
+    } catch {
+      pushToast('Failed to reveal cards. Please try again.', 'error');
+    }
   },
 
   resetVoting: async (taskName?: string) => {
-    const { sessionId } = get();
+    const {
+      sessionId,
+      isRevealed,
+      currentUserVote,
+      votes,
+      taskName: prevTaskName,
+    } = get();
     if (!sessionId) throw new Error('No active session');
-    await db.resetSession(sessionId, taskName);
     set((state) => ({
       isRevealed: false,
       currentUserVote: null,
       votes: state.votes.map((v) => ({ ...v, value: null })),
       ...(taskName !== undefined ? { taskName } : {}),
     }));
+    try {
+      await db.resetSession(sessionId, taskName);
+    } catch {
+      set({ isRevealed, currentUserVote, votes, taskName: prevTaskName });
+      pushToast('Failed to start new round. Please try again.', 'error');
+    }
   },
 
   syncVotes: (votes) => set({ votes }),
@@ -121,3 +142,15 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       };
     }),
 }));
+
+export const selectModerator = (state: VotingState): string | null => {
+  if (state.votes.length === 0) return null;
+  const sorted = [...state.votes].sort(
+    (a, b) => new Date(a.voted_at).getTime() - new Date(b.voted_at).getTime(),
+  );
+  return sorted[0].user_name;
+};
+
+export const selectIsModerator = (state: VotingState): boolean => {
+  return state.userName !== null && selectModerator(state) === state.userName;
+};
