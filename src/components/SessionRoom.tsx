@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useVotingStore } from '@/store/useVotingStore';
+import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
 import ParticipantsList from './ParticipantsList';
 import TaskHeader from './TaskHeader';
 import UsernamePrompt from './UsernamePrompt';
@@ -11,9 +12,12 @@ import VotingResults from './VotingResults';
 export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const userName = useVotingStore((s) => s.userName);
   const isRevealed = useVotingStore((s) => s.isRevealed);
+  const storeSessionId = useVotingStore((s) => s.sessionId);
   const joinSession = useVotingStore((s) => s.joinSession);
   const revealCards = useVotingStore((s) => s.revealCards);
   const resetVoting = useVotingStore((s) => s.resetVoting);
+
+  const { connectionStatus } = useRealtimeVotes(storeSessionId);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,6 +50,11 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10">
+      {connectionStatus === 'error' && (
+        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+          Realtime connection lost. Updates may be delayed.
+        </div>
+      )}
       <TaskHeader />
       <VotingCards />
       <div className="flex gap-3">

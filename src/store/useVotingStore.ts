@@ -19,6 +19,9 @@ interface VotingState {
   revealCards: () => Promise<void>;
   resetVoting: () => Promise<void>;
   syncVotes: (votes: Vote[]) => void;
+  addVote: (vote: Vote) => void;
+  updateVote: (vote: Vote) => void;
+  syncSession: (updates: { is_revealed: boolean; task_name: string }) => void;
 }
 
 const initialState = {
@@ -82,4 +85,28 @@ export const useVotingStore = create<VotingState>((set, get) => ({
   },
 
   syncVotes: (votes) => set({ votes }),
+
+  addVote: (vote) =>
+    set((state) => {
+      if (state.votes.some((v) => v.id === vote.id)) return state;
+      return { votes: [...state.votes, vote] };
+    }),
+
+  updateVote: (vote) =>
+    set((state) => {
+      const votes = state.votes.map((v) => (v.id === vote.id ? vote : v));
+      const currentUserVote =
+        vote.user_name === state.userName ? vote.value : state.currentUserVote;
+      return { votes, currentUserVote };
+    }),
+
+  syncSession: (updates) =>
+    set((state) => {
+      const newRound = !updates.is_revealed && state.isRevealed;
+      return {
+        isRevealed: updates.is_revealed,
+        taskName: updates.task_name,
+        ...(newRound ? { currentUserVote: null } : {}),
+      };
+    }),
 }));
