@@ -1,0 +1,47 @@
+'use client';
+
+import { useVotingStore } from '@/store/useVotingStore';
+
+export default function ParticipantsList() {
+  const votes = useVotingStore((s) => s.votes);
+  const isRevealed = useVotingStore((s) => s.isRevealed);
+  const userName = useVotingStore((s) => s.userName);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground/60">
+        Participants
+      </h2>
+      <ul className="flex flex-col gap-1">
+        {votes.map((vote) => {
+          const isCurrentUser = vote.user_name === userName;
+          return (
+            <li
+              key={vote.id}
+              className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                isCurrentUser ? 'bg-accent/10' : ''
+              }`}
+            >
+              <span className={isCurrentUser ? 'font-medium' : ''}>
+                {vote.user_name}
+                {isCurrentUser && ' (you)'}
+              </span>
+              <span className="font-mono">
+                {isRevealed
+                  ? (vote.value ?? '—')
+                  : vote.value !== null
+                    ? '✓'
+                    : '⏳'}
+              </span>
+            </li>
+          );
+        })}
+        {votes.length === 0 && (
+          <li className="px-3 py-2 text-sm text-foreground/40">
+            No participants yet
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
