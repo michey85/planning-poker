@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
+import { createSession } from '@/lib/database';
 
 export default function CreateSessionForm() {
   const router = useRouter();
   const [taskName, setTaskName] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmed = taskName.trim();
 
@@ -23,9 +25,15 @@ export default function CreateSessionForm() {
     }
 
     setError('');
-    // TODO: Create session in Supabase, get back session ID
-    console.log('Creating session:', trimmed);
-    router.push(`/session/${crypto.randomUUID()}`);
+    setIsLoading(true);
+
+    try {
+      const session = await createSession(trimmed);
+      router.push(`/session/${session.id}`);
+    } catch {
+      setError('Failed to create session. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,9 +62,10 @@ export default function CreateSessionForm() {
       </div>
       <button
         type="submit"
-        className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+        disabled={isLoading}
+        className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
       >
-        Create Session
+        {isLoading ? 'Creating...' : 'Create Session'}
       </button>
     </form>
   );
