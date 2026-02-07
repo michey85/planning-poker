@@ -37,10 +37,35 @@ export default function TaskHeader() {
           type="button"
           onClick={copyId}
           aria-label="Copy session link"
-          className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 font-mono text-xs transition-colors hover:border-accent"
+          className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 text-xs transition-colors hover:border-accent hover:text-foreground"
         >
-          {sessionId?.slice(0, 8)}...
-          <span>{copied ? '✓' : '⎘'}</span>
+          {copied ? (
+            <svg
+              className="size-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          ) : (
+            <svg
+              className="size-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          )}
+          {copied ? 'Copied!' : 'Copy link'}
         </button>
         <span aria-live="polite">
           {votedCount} of {totalCount} voted
