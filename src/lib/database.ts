@@ -91,3 +91,20 @@ export async function getVotes(sessionId: string): Promise<Vote[]> {
   if (error) throw error;
   return data ?? [];
 }
+
+export async function renameUser(
+  sessionId: string,
+  oldName: string,
+  newName: string,
+): Promise<Vote> {
+  const { data, error } = await supabase
+    .from('votes')
+    .update({ user_name: newName })
+    .eq('session_id', sessionId)
+    .eq('user_name', oldName)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

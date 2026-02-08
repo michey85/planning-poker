@@ -19,6 +19,7 @@ interface VotingState {
   castVote: (value: CardValue) => Promise<void>;
   revealCards: () => Promise<void>;
   resetVoting: (taskName?: string) => Promise<void>;
+  renameUser: (newName: string) => Promise<void>;
   syncVotes: (votes: Vote[]) => void;
   addVote: (vote: Vote) => void;
   updateVote: (vote: Vote) => void;
@@ -113,6 +114,19 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     } catch {
       set({ isRevealed, currentUserVote, votes, taskName: prevTaskName });
       pushToast('Failed to start new round. Please try again.', 'error');
+    }
+  },
+
+  renameUser: async (newName) => {
+    const { sessionId, userName: oldName } = get();
+    if (!sessionId || !oldName) throw new Error('No active session or user');
+    set({ userName: newName });
+    try {
+      await db.renameUser(sessionId, oldName, newName);
+    } catch {
+      set({ userName: oldName });
+      pushToast('Failed to rename user. Please try again.', 'error');
+      throw new Error('Rename failed');
     }
   },
 
