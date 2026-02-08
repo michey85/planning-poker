@@ -12,6 +12,7 @@ interface VotingState {
   sessionId: string | null;
   taskName: string | null;
   isRevealed: boolean;
+  sessionClosed: boolean;
 
   userName: string | null;
   currentUserVote: string | null;
@@ -25,6 +26,8 @@ interface VotingState {
   revealCards: () => Promise<void>;
   resetVoting: (taskName?: string) => Promise<void>;
   renameUser: (newName: string) => Promise<void>;
+  closeSession: () => Promise<void>;
+  markSessionClosed: () => void;
   syncVotes: (votes: Vote[]) => void;
   addVote: (vote: Vote) => void;
   updateVote: (vote: Vote) => void;
@@ -35,6 +38,7 @@ const initialState = {
   sessionId: null,
   taskName: null,
   isRevealed: false,
+  sessionClosed: false,
   userName: null,
   currentUserVote: null,
   votes: [],
@@ -155,6 +159,21 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       throw new Error('Rename failed');
     }
   },
+
+  closeSession: async () => {
+    const { sessionId } = get();
+    if (!sessionId) throw new Error('No active session');
+    try {
+      await db.deleteSession(sessionId);
+      removeStoredUserName(sessionId);
+      set(initialState);
+    } catch {
+      pushToast('Failed to close session. Please try again.', 'error');
+      throw new Error('Close session failed');
+    }
+  },
+
+  markSessionClosed: () => set({ sessionClosed: true }),
 
   syncVotes: (votes) => set({ votes }),
 

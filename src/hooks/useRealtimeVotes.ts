@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
 import * as db from '@/lib/database';
 import { useVotingStore } from '@/store/useVotingStore';
 import type { Vote } from '@/types';
+import { createClient } from '@/utils/supabase/client';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'error';
 
@@ -73,6 +73,18 @@ export function useRealtimeVotes(sessionId: string | null) {
             task_name: string;
           };
           useVotingStore.getState().syncSession({ is_revealed, task_name });
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'sessions',
+          filter: `id=eq.${sessionId}`,
+        },
+        () => {
+          useVotingStore.getState().markSessionClosed();
         },
       )
       .subscribe((status) => {

@@ -62,6 +62,15 @@ export async function resetSession(
   if (sessionError) throw sessionError;
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+  const { error } = await supabase
+    .from('sessions')
+    .delete()
+    .eq('id', sessionId);
+
+  if (error) throw error;
+}
+
 // --- Votes ---
 
 export async function castVote(

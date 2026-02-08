@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
 import { selectIsModerator, useVotingStore } from '@/store/useVotingStore';
@@ -10,14 +11,17 @@ import VotingCards from './VotingCards';
 import VotingResults from './VotingResults';
 
 export default function SessionRoom({ sessionId }: { sessionId: string }) {
+  const router = useRouter();
   const userName = useVotingStore((s) => s.userName);
   const isRevealed = useVotingStore((s) => s.isRevealed);
   const storeSessionId = useVotingStore((s) => s.sessionId);
   const taskName = useVotingStore((s) => s.taskName);
   const votes = useVotingStore((s) => s.votes);
+  const sessionClosed = useVotingStore((s) => s.sessionClosed);
   const joinSession = useVotingStore((s) => s.joinSession);
   const revealCards = useVotingStore((s) => s.revealCards);
   const resetVoting = useVotingStore((s) => s.resetVoting);
+  const closeSession = useVotingStore((s) => s.closeSession);
   const isModerator = useVotingStore(selectIsModerator);
 
   const { connectionStatus } = useRealtimeVotes(storeSessionId);
@@ -28,6 +32,7 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const [newTaskName, setNewTaskName] = useState('');
   const [isRevealing, setIsRevealing] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -76,6 +81,23 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
     }
   };
 
+  const handleCloseSession = async () => {
+    if (
+      !window.confirm(
+        'Are you sure you want to close this session? This action cannot be undone and all participants will be disconnected.',
+      )
+    ) {
+      return;
+    }
+    setIsClosing(true);
+    try {
+      await closeSession();
+      router.push('/');
+    } catch {
+      setIsClosing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -94,6 +116,24 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
 
   if (!userName) {
     return <UsernamePrompt />;
+  }
+
+  if (sessionClosed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-lg text-foreground">
+            Session was closed by the moderator.
+          </p>
+          <a
+            href="/"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          >
+            Return to Home
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -178,6 +218,18 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
       </div>
       {isRevealed && <VotingResults />}
       <ParticipantsList />
+      {isModerator && (
+        <div className="mt-4 border-t border-border pt-6">
+          <button
+            type="button"
+            onClick={handleCloseSession}
+            disabled={isClosing}
+            className="rounded-lg border border-red-500 bg-transparent px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500 hover:text-white disabled:opacity-50"
+          >
+            {isClosing ? 'Closing...' : 'Close Session'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
