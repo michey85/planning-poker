@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 import * as db from '@/lib/database';
+import {
+  getStoredUserName,
+  removeStoredUserName,
+  setStoredUserName,
+} from '@/lib/sessionStorage';
 import { pushToast } from '@/lib/toast';
 import type { CardValue, Vote } from '@/types';
 
@@ -39,9 +44,10 @@ export const useVotingStore = create<VotingState>((set, get) => ({
   ...initialState,
 
   setUserName: async (name) => {
-    set({ userName: name });
     const { sessionId } = get();
+    set({ userName: name });
     if (sessionId) {
+      setStoredUserName(sessionId, name);
       await db.castVote(sessionId, name, null);
     }
   },
@@ -50,12 +56,31 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     const session = await db.getSession(sessionId);
     if (!session) throw new Error('Session not found');
     const votes = await db.getVotes(sessionId);
+
+    // Check for stored userName and restore if matching
+    const storedName = getStoredUserName(sessionId);
+    let restoredUserName: string | null = null;
+    let restoredVote: string | null = null;
+
+    if (storedName) {
+      const match = votes.find(
+        (v) => v.user_name.toLowerCase() === storedName.toLowerCase(),
+      );
+      if (match) {
+        restoredUserName = match.user_name;
+        restoredVote = match.value;
+      } else {
+        removeStoredUserName(sessionId);
+      }
+    }
+
     set({
       sessionId: session.id,
       taskName: session.task_name,
       isRevealed: session.is_revealed,
       votes,
-      currentUserVote: null,
+      userName: restoredUserName,
+      currentUserVote: restoredVote,
     });
   },
 
@@ -123,6 +148,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     set({ userName: newName });
     try {
       await db.renameUser(sessionId, oldName, newName);
+      setStoredUserName(sessionId, newName);
     } catch {
       set({ userName: oldName });
       pushToast('Failed to rename user. Please try again.', 'error');
