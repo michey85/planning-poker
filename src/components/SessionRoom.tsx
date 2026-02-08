@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
@@ -152,6 +153,12 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
         </div>
       )}
       <TaskHeader />
+      <Link
+        href={`/guide?session=${sessionId}`}
+        className="self-center text-sm text-foreground/60 transition-colors hover:text-accent"
+      >
+        What do these values mean?
+      </Link>
       <VotingCards />
       <div className="flex flex-col gap-3">
         {!isRevealed ? (
