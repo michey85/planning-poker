@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import * as db from '@/lib/database';
 import { useVotingStore } from '@/store/useVotingStore';
-import type { Vote } from '@/types';
+import type { Round, Vote } from '@/types';
 import { createClient } from '@/utils/supabase/client';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'error';
@@ -85,6 +85,18 @@ export function useRealtimeVotes(sessionId: string | null) {
         },
         () => {
           useVotingStore.getState().markSessionClosed();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'rounds',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload) => {
+          useVotingStore.getState().addRound(payload.new as Round);
         },
       )
       .subscribe((status) => {
