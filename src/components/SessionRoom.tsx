@@ -8,6 +8,7 @@ import { useVotingStore } from '@/store/useVotingStore';
 import ConnectionAlert from './ConnectionAlert';
 import ModeratorControls from './ModeratorControls';
 import ParticipantsList from './ParticipantsList';
+import RoundHistory from './RoundHistory';
 import TaskHeader from './TaskHeader';
 import UsernamePrompt from './UsernamePrompt';
 import VotingCards from './VotingCards';
@@ -96,6 +97,7 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
       <ModeratorControls onSessionClosed={() => router.push('/')} />
       {isRevealed && <VotingResults />}
       <ParticipantsList />
+      <RoundHistory />
     </div>
   );
 }
