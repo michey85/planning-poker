@@ -1,4 +1,4 @@
-import type { CardValue, Session, Vote } from '@/types';
+import type { CardValue, Round, Session, Vote } from '@/types';
 import { createClient } from '@/utils/supabase/client';
 
 const supabase = createClient();
@@ -116,4 +116,38 @@ export async function renameUser(
 
   if (error) throw error;
   return data;
+}
+
+// --- Rounds ---
+
+export async function saveRound(
+  sessionId: string,
+  roundNumber: number,
+  taskName: string,
+  consensusValue: string,
+): Promise<Round> {
+  const { data, error } = await supabase
+    .from('rounds')
+    .insert({
+      session_id: sessionId,
+      round_number: roundNumber,
+      task_name: taskName,
+      consensus_value: consensusValue,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getRounds(sessionId: string): Promise<Round[]> {
+  const { data, error } = await supabase
+    .from('rounds')
+    .select()
+    .eq('session_id', sessionId)
+    .order('round_number', { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
 }
