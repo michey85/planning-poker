@@ -140,23 +140,25 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     if (!sessionId) throw new Error('No active session');
     const roundNumber = rounds.length + 1;
     const roundTaskName = prevTaskName ?? '';
+
+    try {
+      await db.saveRound(sessionId, roundNumber, roundTaskName, consensusValue);
+    } catch {
+      pushToast('Failed to save round. Please try again.', 'error');
+      return;
+    }
+
     set((state) => ({
       isRevealed: false,
       currentUserVote: null,
       votes: state.votes.map((v) => ({ ...v, value: null })),
       ...(taskName !== undefined ? { taskName } : {}),
     }));
+
     try {
-      await db.saveRound(sessionId, roundNumber, roundTaskName, consensusValue);
       await db.resetSession(sessionId, taskName);
     } catch {
-      set({
-        isRevealed,
-        currentUserVote,
-        votes,
-        rounds,
-        taskName: prevTaskName,
-      });
+      set({ isRevealed, currentUserVote, votes, taskName: prevTaskName });
       pushToast('Failed to start new round. Please try again.', 'error');
     }
   },
