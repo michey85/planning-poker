@@ -46,7 +46,7 @@ export default function ModeratorControls({
 
   const handleNewRound = () => {
     setNewTaskName(taskName ?? '');
-    const values = votes.map((v) => v.value).filter((v) => v !== null);
+    const values = votes.map((v) => v.value).filter((v): v is string => v !== null);
     const unanimous = values.length > 0 && values.every((v) => v === values[0]);
     setConsensusValue(unanimous ? values[0] : null);
     setShowNewRound(true);
