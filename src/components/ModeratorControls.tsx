@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { selectIsModerator, useVotingStore } from '@/store/useVotingStore';
+import { CARD_VALUES } from '@/types';
 
 interface ModeratorControlsProps {
   onSessionClosed: () => void;
@@ -23,6 +24,7 @@ export default function ModeratorControls({
   const [isRevealing, setIsRevealing] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [consensusValue, setConsensusValue] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const allVoted = votes.length > 0 && votes.every((v) => v.value !== null);
@@ -48,11 +50,13 @@ export default function ModeratorControls({
   };
 
   const confirmNewRound = async () => {
+    if (!consensusValue) return;
     const name = newTaskName.trim();
     setIsResetting(true);
     try {
-      await resetVoting(name && name !== taskName ? name : undefined);
+      await resetVoting(consensusValue, name && name !== taskName ? name : undefined);
       setShowNewRound(false);
+      setConsensusValue(null);
     } finally {
       setIsResetting(false);
     }
@@ -107,18 +111,35 @@ export default function ModeratorControls({
                 placeholder="Task name for next round"
                 className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
               />
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-sm text-foreground/60 w-full">Consensus:</span>
+                {CARD_VALUES.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setConsensusValue(v)}
+                    className={`rounded px-2.5 py-1 text-sm font-medium border transition-colors ${
+                      consensusValue === v
+                        ? 'bg-accent text-white border-accent'
+                        : 'border-border text-foreground/60 hover:border-accent'
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={confirmNewRound}
-                  disabled={isResetting}
+                  disabled={isResetting || !consensusValue}
                   className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
                 >
                   {isResetting ? 'Starting...' : 'Start Round'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowNewRound(false)}
+                  onClick={() => { setShowNewRound(false); setConsensusValue(null); }}
                   className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
                 >
                   Cancel
