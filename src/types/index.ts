@@ -25,3 +25,12 @@ export const CARD_VALUES: CardValue[] = [
   '21',
   '?',
 ];
+
+export interface Round {
+  id: string;
+  session_id: string;
+  round_number: number;
+  task_name: string;
+  consensus_value: string;
+  created_at: string;
+}
