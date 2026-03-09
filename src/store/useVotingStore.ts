@@ -6,7 +6,7 @@ import {
   setStoredUserName,
 } from '@/lib/sessionStorage';
 import { pushToast } from '@/lib/toast';
-import type { CardValue, Vote } from '@/types';
+import type { CardValue, Round, Vote } from '@/types';
 
 interface VotingState {
   sessionId: string | null;
@@ -18,13 +18,15 @@ interface VotingState {
   currentUserVote: string | null;
 
   votes: Vote[];
+  rounds: Round[];
+  addRound: (round: Round) => void;
 
   setUserName: (name: string) => Promise<void>;
   joinSession: (sessionId: string) => Promise<void>;
   createSession: (taskName: string) => Promise<string>;
   castVote: (value: CardValue) => Promise<void>;
   revealCards: () => Promise<void>;
-  resetVoting: (taskName?: string) => Promise<void>;
+  resetVoting: (consensusValue: string, taskName?: string) => Promise<void>;
   renameUser: (newName: string) => Promise<void>;
   closeSession: () => Promise<void>;
   markSessionClosed: () => void;
@@ -42,6 +44,7 @@ const initialState = {
   userName: null,
   currentUserVote: null,
   votes: [],
+  rounds: [],
 };
 
 export const useVotingStore = create<VotingState>((set, get) => ({
@@ -60,6 +63,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     const session = await db.getSession(sessionId);
     if (!session) throw new Error('Session not found');
     const votes = await db.getVotes(sessionId);
+    const rounds = await db.getRounds(sessionId);
 
     // Check for stored userName and restore if matching
     const storedName = getStoredUserName(sessionId);
@@ -83,6 +87,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       taskName: session.task_name,
       isRevealed: session.is_revealed,
       votes,
+      rounds,
       userName: restoredUserName,
       currentUserVote: restoredVote,
     });
@@ -123,15 +128,18 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     }
   },
 
-  resetVoting: async (taskName?: string) => {
+  resetVoting: async (consensusValue: string, taskName?: string) => {
     const {
       sessionId,
       isRevealed,
       currentUserVote,
       votes,
+      rounds,
       taskName: prevTaskName,
     } = get();
     if (!sessionId) throw new Error('No active session');
+    const roundNumber = rounds.length + 1;
+    const roundTaskName = prevTaskName ?? '';
     set((state) => ({
       isRevealed: false,
       currentUserVote: null,
@@ -139,9 +147,16 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       ...(taskName !== undefined ? { taskName } : {}),
     }));
     try {
+      await db.saveRound(sessionId, roundNumber, roundTaskName, consensusValue);
       await db.resetSession(sessionId, taskName);
     } catch {
-      set({ isRevealed, currentUserVote, votes, taskName: prevTaskName });
+      set({
+        isRevealed,
+        currentUserVote,
+        votes,
+        rounds,
+        taskName: prevTaskName,
+      });
       pushToast('Failed to start new round. Please try again.', 'error');
     }
   },
@@ -189,6 +204,12 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       const currentUserVote =
         vote.user_name === state.userName ? vote.value : state.currentUserVote;
       return { votes, currentUserVote };
+    }),
+
+  addRound: (round) =>
+    set((state) => {
+      if (state.rounds.some((r) => r.id === round.id)) return state;
+      return { rounds: [...state.rounds, round] };
     }),
 
   syncSession: (updates) =>
