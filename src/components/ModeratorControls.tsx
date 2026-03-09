@@ -46,6 +46,9 @@ export default function ModeratorControls({
 
   const handleNewRound = () => {
     setNewTaskName(taskName ?? '');
+    const values = votes.map((v) => v.value).filter((v) => v !== null);
+    const unanimous = values.length > 0 && values.every((v) => v === values[0]);
+    setConsensusValue(unanimous ? values[0] : null);
     setShowNewRound(true);
   };
 
@@ -54,7 +57,10 @@ export default function ModeratorControls({
     const name = newTaskName.trim();
     setIsResetting(true);
     try {
-      await resetVoting(consensusValue, name && name !== taskName ? name : undefined);
+      await resetVoting(
+        consensusValue,
+        name && name !== taskName ? name : undefined,
+      );
       setShowNewRound(false);
       setConsensusValue(null);
     } finally {
@@ -112,7 +118,9 @@ export default function ModeratorControls({
                 className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
               />
               <div className="flex flex-wrap gap-1.5">
-                <span className="text-sm text-foreground/60 w-full">Consensus:</span>
+                <span className="text-sm text-foreground/60 w-full">
+                  Consensus:
+                </span>
                 {CARD_VALUES.map((v) => (
                   <button
                     key={v}
@@ -139,7 +147,10 @@ export default function ModeratorControls({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowNewRound(false); setConsensusValue(null); }}
+                  onClick={() => {
+                    setShowNewRound(false);
+                    setConsensusValue(null);
+                  }}
                   className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
                 >
                   Cancel
