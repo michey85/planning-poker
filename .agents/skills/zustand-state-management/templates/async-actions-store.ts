@@ -20,42 +20,42 @@
  * Learn more: See SKILL.md Common Patterns section
  */
 
-import { create } from 'zustand'
+import { create } from 'zustand';
 
 interface User {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface Post {
-  id: string
-  title: string
-  body: string
-  userId: string
+  id: string;
+  title: string;
+  body: string;
+  userId: string;
 }
 
 interface AsyncStore {
   // Data state
-  user: User | null
-  posts: Post[]
+  user: User | null;
+  posts: Post[];
 
   // Loading states
-  isLoadingUser: boolean
-  isLoadingPosts: boolean
-  isSavingPost: boolean
+  isLoadingUser: boolean;
+  isLoadingPosts: boolean;
+  isSavingPost: boolean;
 
   // Error states
-  userError: string | null
-  postsError: string | null
-  saveError: string | null
+  userError: string | null;
+  postsError: string | null;
+  saveError: string | null;
 
   // Actions
-  fetchUser: (userId: string) => Promise<void>
-  fetchPosts: (userId: string) => Promise<void>
-  createPost: (post: Omit<Post, 'id'>) => Promise<void>
-  deletePost: (postId: string) => Promise<void>
-  reset: () => void
+  fetchUser: (userId: string) => Promise<void>;
+  fetchPosts: (userId: string) => Promise<void>;
+  createPost: (post: Omit<Post, 'id'>) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  reset: () => void;
 }
 
 export const useAsyncStore = create<AsyncStore>()((set, get) => ({
@@ -71,113 +71,113 @@ export const useAsyncStore = create<AsyncStore>()((set, get) => ({
 
   // Fetch user
   fetchUser: async (userId) => {
-    set({ isLoadingUser: true, userError: null })
+    set({ isLoadingUser: true, userError: null });
 
     try {
-      const response = await fetch(`https://api.example.com/users/${userId}`)
+      const response = await fetch(`https://api.example.com/users/${userId}`);
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch user: ${response.statusText}`)
+        throw new Error(`Failed to fetch user: ${response.statusText}`);
       }
 
-      const user = await response.json()
-      set({ user, isLoadingUser: false })
+      const user = await response.json();
+      set({ user, isLoadingUser: false });
     } catch (error) {
       set({
         userError: (error as Error).message,
         isLoadingUser: false,
         user: null,
-      })
+      });
     }
   },
 
   // Fetch posts
   fetchPosts: async (userId) => {
-    set({ isLoadingPosts: true, postsError: null })
+    set({ isLoadingPosts: true, postsError: null });
 
     try {
-      const response = await fetch(`https://api.example.com/users/${userId}/posts`)
+      const response = await fetch(
+        `https://api.example.com/users/${userId}/posts`,
+      );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch posts: ${response.statusText}`)
+        throw new Error(`Failed to fetch posts: ${response.statusText}`);
       }
 
-      const posts = await response.json()
-      set({ posts, isLoadingPosts: false })
+      const posts = await response.json();
+      set({ posts, isLoadingPosts: false });
     } catch (error) {
       set({
         postsError: (error as Error).message,
         isLoadingPosts: false,
-      })
+      });
     }
   },
 
   // Create post with optimistic update
   createPost: async (post) => {
-    const tempId = `temp-${Date.now()}`
-    const optimisticPost = { ...post, id: tempId }
+    const tempId = `temp-${Date.now()}`;
+    const optimisticPost = { ...post, id: tempId };
 
     // Optimistic update
     set((state) => ({
       posts: [...state.posts, optimisticPost],
       isSavingPost: true,
       saveError: null,
-    }))
+    }));
 
     try {
       const response = await fetch('https://api.example.com/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(post),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to create post: ${response.statusText}`)
+        throw new Error(`Failed to create post: ${response.statusText}`);
       }
 
-      const savedPost = await response.json()
+      const savedPost = await response.json();
 
       // Replace optimistic post with real one
       set((state) => ({
-        posts: state.posts.map((p) =>
-          p.id === tempId ? savedPost : p
-        ),
+        posts: state.posts.map((p) => (p.id === tempId ? savedPost : p)),
         isSavingPost: false,
-      }))
+      }));
     } catch (error) {
       // Rollback optimistic update
       set((state) => ({
         posts: state.posts.filter((p) => p.id !== tempId),
         saveError: (error as Error).message,
         isSavingPost: false,
-      }))
+      }));
     }
   },
 
   // Delete post
   deletePost: async (postId) => {
     // Store original posts for rollback
-    const originalPosts = get().posts
+    const originalPosts = get().posts;
 
     // Optimistic update
     set((state) => ({
       posts: state.posts.filter((p) => p.id !== postId),
-    }))
+    }));
 
     try {
       const response = await fetch(`https://api.example.com/posts/${postId}`, {
         method: 'DELETE',
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete post: ${response.statusText}`)
+        throw new Error(`Failed to delete post: ${response.statusText}`);
       }
     } catch (error) {
       // Rollback on error
       set({
         posts: originalPosts,
         saveError: (error as Error).message,
-      })
+      });
     }
   },
 
@@ -193,7 +193,7 @@ export const useAsyncStore = create<AsyncStore>()((set, get) => ({
       postsError: null,
       saveError: null,
     }),
-}))
+}));
 
 /**
  * Usage in components:

@@ -15,26 +15,26 @@
  * Learn more: See SKILL.md for combining with other middleware
  */
 
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 interface Todo {
-  id: string
-  text: string
-  done: boolean
+  id: string;
+  text: string;
+  done: boolean;
 }
 
 interface DevtoolsStore {
   // State
-  todos: Todo[]
-  filter: 'all' | 'active' | 'completed'
+  todos: Todo[];
+  filter: 'all' | 'active' | 'completed';
 
   // Actions
-  addTodo: (text: string) => void
-  toggleTodo: (id: string) => void
-  deleteTodo: (id: string) => void
-  setFilter: (filter: DevtoolsStore['filter']) => void
-  clearCompleted: () => void
+  addTodo: (text: string) => void;
+  toggleTodo: (id: string) => void;
+  deleteTodo: (id: string) => void;
+  setFilter: (filter: DevtoolsStore['filter']) => void;
+  clearCompleted: () => void;
 }
 
 export const useDevtoolsStore = create<DevtoolsStore>()(
@@ -61,7 +61,7 @@ export const useDevtoolsStore = create<DevtoolsStore>()(
         set(
           (state) => ({
             todos: state.todos.map((todo) =>
-              todo.id === id ? { ...todo, done: !todo.done } : todo
+              todo.id === id ? { ...todo, done: !todo.done } : todo,
             ),
           }),
           undefined,
@@ -77,12 +77,7 @@ export const useDevtoolsStore = create<DevtoolsStore>()(
           'todos/delete',
         ),
 
-      setFilter: (filter) =>
-        set(
-          { filter },
-          undefined,
-          'filter/set',
-        ),
+      setFilter: (filter) => set({ filter }, undefined, 'filter/set'),
 
       clearCompleted: () =>
         set(
@@ -98,7 +93,7 @@ export const useDevtoolsStore = create<DevtoolsStore>()(
       enabled: process.env.NODE_ENV === 'development', // Optional: only in dev
     },
   ),
-)
+);
 
 /**
  * Usage in component:

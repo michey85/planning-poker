@@ -14,27 +14,27 @@
  * Learn more: See SKILL.md Issue #1 for detailed explanation
  */
 
-'use client' // Required for Next.js App Router
+'use client'; // Required for Next.js App Router
 
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface User {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface NextJsStore {
   // State
-  _hasHydrated: boolean // CRITICAL: Track hydration status
-  count: number
-  user: User | null
+  _hasHydrated: boolean; // CRITICAL: Track hydration status
+  count: number;
+  user: User | null;
 
   // Actions
-  setHasHydrated: (hydrated: boolean) => void
-  increment: () => void
-  setUser: (user: User | null) => void
-  reset: () => void
+  setHasHydrated: (hydrated: boolean) => void;
+  increment: () => void;
+  setUser: (user: User | null) => void;
+  reset: () => void;
 }
 
 export const useNextJsStore = create<NextJsStore>()(
@@ -60,11 +60,11 @@ export const useNextJsStore = create<NextJsStore>()(
 
       // CRITICAL: Call setHasHydrated when rehydration completes
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true)
+        state?.setHasHydrated(true);
       },
     },
   ),
-)
+);
 
 /**
  * Usage in Next.js component:

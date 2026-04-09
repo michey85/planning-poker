@@ -123,7 +123,9 @@ export default function ParticipantsList() {
                       </button>
                     </div>
                     {renameError && (
-                      <span className="text-xs text-red-500">{renameError}</span>
+                      <span className="text-xs text-red-500">
+                        {renameError}
+                      </span>
                     )}
                   </>
                 ) : (
@@ -133,7 +135,9 @@ export default function ParticipantsList() {
                     <span className="truncate">
                       {vote.user_name}
                       {vote.user_name === moderator && (
-                        <span className="ml-1.5 text-xs text-accent">(mod)</span>
+                        <span className="ml-1.5 text-xs text-accent">
+                          (mod)
+                        </span>
                       )}
                       {isCurrentUser && ' (you)'}
                     </span>

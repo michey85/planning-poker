@@ -99,9 +99,11 @@ export function useRealtimeVotes(sessionId: string | null) {
           useVotingStore.getState().addRound(payload.new as Round);
         },
       )
-      .subscribe((status) => {
+      .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
+          const votes = await db.getVotes(sessionId);
+          useVotingStore.getState().syncVotes(votes);
         } else if (
           status === 'CHANNEL_ERROR' ||
           status === 'TIMED_OUT' ||

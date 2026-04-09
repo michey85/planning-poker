@@ -15,31 +15,31 @@
  * Learn more: See SKILL.md Issue #1 for Next.js hydration handling
  */
 
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface User {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface PersistedStore {
   // State
-  theme: 'light' | 'dark' | 'system'
-  language: string
-  user: User | null
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  user: User | null;
   preferences: {
-    notifications: boolean
-    emailUpdates: boolean
-  }
+    notifications: boolean;
+    emailUpdates: boolean;
+  };
 
   // Actions
-  setTheme: (theme: PersistedStore['theme']) => void
-  setLanguage: (language: string) => void
-  setUser: (user: User | null) => void
-  updatePreferences: (prefs: Partial<PersistedStore['preferences']>) => void
-  reset: () => void
+  setTheme: (theme: PersistedStore['theme']) => void;
+  setLanguage: (language: string) => void;
+  setUser: (user: User | null) => void;
+  updatePreferences: (prefs: Partial<PersistedStore['preferences']>) => void;
+  reset: () => void;
 }
 
 const initialState = {
@@ -50,7 +50,7 @@ const initialState = {
     notifications: true,
     emailUpdates: false,
   },
-}
+};
 
 export const usePersistedStore = create<PersistedStore>()(
   persist(
@@ -91,14 +91,14 @@ export const usePersistedStore = create<PersistedStore>()(
         if (version === 0) {
           // Migration from version 0 to 1
           // Example: rename field
-          persistedState.language = persistedState.lang || 'en'
-          delete persistedState.lang
+          persistedState.language = persistedState.lang || 'en';
+          delete persistedState.lang;
         }
-        return persistedState
+        return persistedState;
       },
     },
   ),
-)
+);
 
 /**
  * Usage in component:

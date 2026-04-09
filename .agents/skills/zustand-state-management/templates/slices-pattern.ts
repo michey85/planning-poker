@@ -15,68 +15,60 @@
  * Learn more: See SKILL.md Issue #5 for TypeScript complexity handling
  */
 
-import { create, StateCreator } from 'zustand'
-import { devtools } from 'zustand/middleware'
+import { create, StateCreator } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 // ============================================================================
 // SLICE 1: User Management
 // ============================================================================
 
 interface User {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface UserSlice {
-  user: User | null
-  isAuthenticated: boolean
-  setUser: (user: User) => void
-  logout: () => void
+  user: User | null;
+  isAuthenticated: boolean;
+  setUser: (user: User) => void;
+  logout: () => void;
 }
 
 const createUserSlice: StateCreator<
-  UserSlice & CartSlice & NotificationSlice,  // Combined type
-  [['zustand/devtools', never]],               // Middleware mutators
-  [],                                          // Chained middleware
-  UserSlice                                     // This slice's type
+  UserSlice & CartSlice & NotificationSlice, // Combined type
+  [['zustand/devtools', never]], // Middleware mutators
+  [], // Chained middleware
+  UserSlice // This slice's type
 > = (set) => ({
   user: null,
   isAuthenticated: false,
 
   setUser: (user) =>
-    set(
-      { user, isAuthenticated: true },
-      undefined,
-      'user/setUser',
-    ),
+    set({ user, isAuthenticated: true }, undefined, 'user/setUser'),
 
   logout: () =>
-    set(
-      { user: null, isAuthenticated: false },
-      undefined,
-      'user/logout',
-    ),
-})
+    set({ user: null, isAuthenticated: false }, undefined, 'user/logout'),
+});
 
 // ============================================================================
 // SLICE 2: Shopping Cart
 // ============================================================================
 
 interface CartItem {
-  id: string
-  name: string
-  price: number
-  quantity: number
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
 }
 
 interface CartSlice {
-  items: CartItem[]
-  addItem: (item: CartItem) => void
-  removeItem: (id: string) => void
-  clearCart: () => void
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => void;
   // Access other slices
-  eatFish: () => void // Example: cross-slice action
+  eatFish: () => void; // Example: cross-slice action
 }
 
 const createCartSlice: StateCreator<
@@ -105,12 +97,7 @@ const createCartSlice: StateCreator<
       'cart/removeItem',
     ),
 
-  clearCart: () =>
-    set(
-      { items: [] },
-      undefined,
-      'cart/clearCart',
-    ),
+  clearCart: () => set({ items: [] }, undefined, 'cart/clearCart'),
 
   // Example: Action that accesses another slice
   eatFish: () =>
@@ -122,17 +109,17 @@ const createCartSlice: StateCreator<
       undefined,
       'cart/eatFish',
     ),
-})
+});
 
 // ============================================================================
 // SLICE 3: Notifications
 // ============================================================================
 
 interface NotificationSlice {
-  notifications: number
-  messages: string[]
-  addNotification: (message: string) => void
-  clearNotifications: () => void
+  notifications: number;
+  messages: string[];
+  addNotification: (message: string) => void;
+  clearNotifications: () => void;
 }
 
 const createNotificationSlice: StateCreator<
@@ -155,12 +142,8 @@ const createNotificationSlice: StateCreator<
     ),
 
   clearNotifications: () =>
-    set(
-      { notifications: 0, messages: [] },
-      undefined,
-      'notifications/clear',
-    ),
-})
+    set({ notifications: 0, messages: [] }, undefined, 'notifications/clear'),
+});
 
 // ============================================================================
 // COMBINE SLICES
@@ -175,7 +158,7 @@ export const useAppStore = create<UserSlice & CartSlice & NotificationSlice>()(
     }),
     { name: 'AppStore' },
   ),
-)
+);
 
 /**
  * Usage in components:

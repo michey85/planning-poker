@@ -11,29 +11,29 @@
  * Learn more: See SKILL.md for middleware and advanced patterns
  */
 
-import { create } from 'zustand'
+import { create } from 'zustand';
 
 // Define state interface
 interface User {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
 }
 
 // Define store interface (state + actions)
 interface AppStore {
   // State
-  count: number
-  user: User | null
-  isLoading: boolean
+  count: number;
+  user: User | null;
+  isLoading: boolean;
 
   // Actions
-  increment: () => void
-  decrement: () => void
-  reset: () => void
-  setUser: (user: User) => void
-  clearUser: () => void
-  setLoading: (loading: boolean) => void
+  increment: () => void;
+  decrement: () => void;
+  reset: () => void;
+  setUser: (user: User) => void;
+  clearUser: () => void;
+  setLoading: (loading: boolean) => void;
 }
 
 // Create typed store with double parentheses
@@ -55,7 +55,7 @@ export const useAppStore = create<AppStore>()((set) => ({
   clearUser: () => set({ user: null }),
 
   setLoading: (loading) => set({ isLoading: loading }),
-}))
+}));
 
 /**
  * Usage in component:
