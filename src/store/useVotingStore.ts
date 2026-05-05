@@ -55,7 +55,8 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     set({ userName: name });
     if (sessionId) {
       setStoredUserName(sessionId, name);
-      await db.castVote(sessionId, name, null);
+      const vote = await db.castVote(sessionId, name, null);
+      get().addVote(vote);
     }
   },
 
