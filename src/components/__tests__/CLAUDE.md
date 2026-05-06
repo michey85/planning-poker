@@ -90,3 +90,7 @@ Each component file covers:
 ## File Naming
 
 `ComponentName.test.tsx` — co-located in this `__tests__` directory alongside the component source at `../ComponentName.tsx`.
+
+## Test results
+
+Make sure that no console errors left after the test runs.

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useVotingStore } from '@/store/useVotingStore';
 import ModeratorControls from '../ModeratorControls';
@@ -85,7 +85,7 @@ describe('ModeratorControls — not revealed', () => {
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'Reveal Cards' }));
     expect(screen.getByRole('button', { name: 'Revealing...' })).toBeDisabled();
-    resolve();
+    await act(async () => { resolve(); });
   });
 
   it('adds animate-pulse when all participants have voted', () => {
@@ -219,7 +219,7 @@ describe('ModeratorControls — Close Session', () => {
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
     expect(screen.getByRole('button', { name: 'Closing...' })).toBeDisabled();
-    resolve();
+    await act(async () => { resolve(); });
   });
 
   it('re-enables button if closeSession throws', async () => {
