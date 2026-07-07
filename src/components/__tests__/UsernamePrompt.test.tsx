@@ -9,16 +9,26 @@ jest.mock('@/store/useVotingStore', () => ({
   useVotingStore: jest.fn(),
 }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 const mockSetUserName = jest.fn();
 
 function makeVote(userName: string) {
-  return { id: 'v1', session_id: 's1', user_name: userName, value: '3', voted_at: '' };
+  return {
+    id: 'v1',
+    session_id: 's1',
+    user_name: userName,
+    value: '3',
+    voted_at: '',
+  };
 }
 
 function setupStore({ votes = [] as ReturnType<typeof makeVote>[] } = {}) {
   const state = { setUserName: mockSetUserName, votes };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) => selector(state));
+  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
+    selector(state),
+  );
 }
 
 beforeEach(() => {
@@ -30,7 +40,9 @@ beforeEach(() => {
 describe('UsernamePrompt — rendering', () => {
   it('renders the form with heading and input', () => {
     render(<UsernamePrompt />);
-    expect(screen.getByRole('heading', { name: 'Enter your name' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Enter your name' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Join' })).toBeInTheDocument();
   });
@@ -55,7 +67,9 @@ describe('UsernamePrompt — validation', () => {
     render(<UsernamePrompt />);
     await userEvent.type(screen.getByLabelText('Name'), 'A');
     await userEvent.click(screen.getByRole('button', { name: 'Join' }));
-    expect(screen.getByText('Name must be at least 2 characters.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Name must be at least 2 characters.'),
+    ).toBeInTheDocument();
   });
 
   it('shows error when name is already taken (case-insensitive)', async () => {
@@ -90,7 +104,9 @@ describe('UsernamePrompt — submission', () => {
     await userEvent.type(screen.getByLabelText('Name'), 'Alice');
     await userEvent.click(screen.getByRole('button', { name: 'Join' }));
     expect(screen.getByRole('button', { name: 'Joining...' })).toBeDisabled();
-    await act(async () => { resolve(); });
+    await act(async () => {
+      resolve();
+    });
   });
 
   it('shows error and re-enables button if setUserName throws', async () => {
@@ -99,7 +115,9 @@ describe('UsernamePrompt — submission', () => {
     await userEvent.type(screen.getByLabelText('Name'), 'Alice');
     await userEvent.click(screen.getByRole('button', { name: 'Join' }));
     await waitFor(() =>
-      expect(screen.getByText('Failed to join. Please try again.')).toBeInTheDocument(),
+      expect(
+        screen.getByText('Failed to join. Please try again.'),
+      ).toBeInTheDocument(),
     );
     expect(screen.getByRole('button', { name: 'Join' })).not.toBeDisabled();
   });
@@ -111,6 +129,8 @@ describe('UsernamePrompt — submission', () => {
     await userEvent.type(screen.getByLabelText('Name'), 'Alice');
     await userEvent.click(screen.getByRole('button', { name: 'Join' }));
     expect(screen.getByLabelText('Name')).toBeDisabled();
-    await act(async () => { resolve(); });
+    await act(async () => {
+      resolve();
+    });
   });
 });

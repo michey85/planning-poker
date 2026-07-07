@@ -9,14 +9,22 @@ jest.mock('@/store/useVotingStore', () => ({
   useVotingStore: jest.fn(),
 }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 
 const mockRevealCards = jest.fn();
 const mockResetVoting = jest.fn();
 const mockCloseSession = jest.fn();
 
 function makeVote(userName: string, value: string | null, votedAt: string) {
-  return { id: 'v1', session_id: 's1', user_name: userName, value, voted_at: votedAt };
+  return {
+    id: 'v1',
+    session_id: 's1',
+    user_name: userName,
+    value,
+    voted_at: votedAt,
+  };
 }
 
 function setupStore({
@@ -24,17 +32,20 @@ function setupStore({
   taskName = 'Build auth',
   votes = [] as ReturnType<typeof makeVote>[],
   userName = 'Alice',
+  historyEnabled = true,
 }: {
   isRevealed?: boolean;
   taskName?: string;
   votes?: ReturnType<typeof makeVote>[];
   userName?: string;
+  historyEnabled?: boolean;
 } = {}) {
   const state = {
     isRevealed,
     taskName,
     votes,
     userName,
+    historyEnabled,
     revealCards: mockRevealCards,
     resetVoting: mockResetVoting,
     closeSession: mockCloseSession,
@@ -61,13 +72,17 @@ describe('ModeratorControls — not revealed', () => {
   it('shows Reveal Cards button for moderator', () => {
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByRole('button', { name: 'Reveal Cards' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Reveal Cards' }),
+    ).toBeInTheDocument();
   });
 
   it('shows waiting message for non-moderator', () => {
     setupStore({ votes: moderatorVotes, userName: 'Bob' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByText('Waiting for moderator to reveal...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Waiting for moderator to reveal...'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reveal Cards' })).toBeNull();
   });
 
@@ -85,7 +100,9 @@ describe('ModeratorControls — not revealed', () => {
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'Reveal Cards' }));
     expect(screen.getByRole('button', { name: 'Revealing...' })).toBeDisabled();
-    await act(async () => { resolve(); });
+    await act(async () => {
+      resolve();
+    });
   });
 
   it('adds animate-pulse when all participants have voted', () => {
@@ -95,7 +112,9 @@ describe('ModeratorControls — not revealed', () => {
     ];
     setupStore({ votes: allVoted, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByRole('button', { name: 'Reveal Cards' })).toHaveClass('animate-pulse');
+    expect(screen.getByRole('button', { name: 'Reveal Cards' })).toHaveClass(
+      'animate-pulse',
+    );
   });
 
   it('does not add animate-pulse when some votes are pending', () => {
@@ -105,7 +124,9 @@ describe('ModeratorControls — not revealed', () => {
     ];
     setupStore({ votes: partial, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByRole('button', { name: 'Reveal Cards' })).not.toHaveClass('animate-pulse');
+    expect(
+      screen.getByRole('button', { name: 'Reveal Cards' }),
+    ).not.toHaveClass('animate-pulse');
   });
 });
 
@@ -113,7 +134,9 @@ describe('ModeratorControls — revealed', () => {
   it('shows New Round button for moderator', () => {
     setupStore({ isRevealed: true, votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByRole('button', { name: 'New Round' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'New Round' }),
+    ).toBeInTheDocument();
   });
 
   it('shows waiting message for non-moderator after reveal', () => {
@@ -123,10 +146,17 @@ describe('ModeratorControls — revealed', () => {
   });
 
   it('clicking New Round shows the round form pre-filled with current task name', async () => {
-    setupStore({ isRevealed: true, votes: moderatorVotes, userName: 'Alice', taskName: 'Build auth' });
+    setupStore({
+      isRevealed: true,
+      votes: moderatorVotes,
+      userName: 'Alice',
+      taskName: 'Build auth',
+    });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'New Round' }));
-    expect(screen.getByPlaceholderText('Task name for next round')).toHaveValue('Build auth');
+    expect(screen.getByPlaceholderText('Task name for next round')).toHaveValue(
+      'Build auth',
+    );
   });
 
   it('pre-selects consensus value when all votes are unanimous', async () => {
@@ -149,12 +179,22 @@ describe('ModeratorControls — revealed', () => {
   });
 
   it('Start Round calls resetVoting with selected consensus and task name', async () => {
-    setupStore({ isRevealed: true, votes: moderatorVotes, userName: 'Alice', taskName: 'Build auth' });
+    setupStore({
+      isRevealed: true,
+      votes: moderatorVotes,
+      userName: 'Alice',
+      taskName: 'Build auth',
+    });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'New Round' }));
     await userEvent.click(screen.getByRole('button', { name: '5' }));
-    await userEvent.clear(screen.getByPlaceholderText('Task name for next round'));
-    await userEvent.type(screen.getByPlaceholderText('Task name for next round'), 'New task');
+    await userEvent.clear(
+      screen.getByPlaceholderText('Task name for next round'),
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText('Task name for next round'),
+      'New task',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Start Round' }));
     await waitFor(() =>
       expect(mockResetVoting).toHaveBeenCalledWith('5', 'New task'),
@@ -162,7 +202,12 @@ describe('ModeratorControls — revealed', () => {
   });
 
   it('Start Round passes undefined for task name when unchanged', async () => {
-    setupStore({ isRevealed: true, votes: moderatorVotes, userName: 'Alice', taskName: 'Build auth' });
+    setupStore({
+      isRevealed: true,
+      votes: moderatorVotes,
+      userName: 'Alice',
+      taskName: 'Build auth',
+    });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'New Round' }));
     await userEvent.click(screen.getByRole('button', { name: '3' }));
@@ -172,13 +217,36 @@ describe('ModeratorControls — revealed', () => {
     );
   });
 
+  it('hides consensus buttons and allows starting without one when historyEnabled is false', async () => {
+    setupStore({
+      isRevealed: true,
+      votes: moderatorVotes,
+      userName: 'Alice',
+      taskName: 'Build auth',
+      historyEnabled: false,
+    });
+    render(<ModeratorControls onSessionClosed={jest.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: 'New Round' }));
+    expect(screen.queryByText('Consensus:')).not.toBeInTheDocument();
+    const startBtn = screen.getByRole('button', { name: 'Start Round' });
+    expect(startBtn).not.toBeDisabled();
+    await userEvent.click(startBtn);
+    await waitFor(() =>
+      expect(mockResetVoting).toHaveBeenCalledWith(null, undefined),
+    );
+  });
+
   it('Cancel hides the round form', async () => {
     setupStore({ isRevealed: true, votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'New Round' }));
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.queryByPlaceholderText('Task name for next round')).toBeNull();
-    expect(screen.getByRole('button', { name: 'New Round' })).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('Task name for next round'),
+    ).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'New Round' }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -186,7 +254,9 @@ describe('ModeratorControls — Close Session', () => {
   it('shows Close Session button only for moderator', () => {
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    expect(screen.getByRole('button', { name: 'Close Session' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Close Session' }),
+    ).toBeInTheDocument();
   });
 
   it('does not show Close Session button for non-moderator', () => {
@@ -199,7 +269,9 @@ describe('ModeratorControls — Close Session', () => {
     const onSessionClosed = jest.fn();
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={onSessionClosed} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
     await waitFor(() => expect(mockCloseSession).toHaveBeenCalledTimes(1));
     expect(onSessionClosed).toHaveBeenCalledTimes(1);
   });
@@ -208,7 +280,9 @@ describe('ModeratorControls — Close Session', () => {
     (window.confirm as jest.Mock).mockReturnValue(false);
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
     expect(mockCloseSession).not.toHaveBeenCalled();
   });
 
@@ -217,18 +291,26 @@ describe('ModeratorControls — Close Session', () => {
     mockCloseSession.mockReturnValue(new Promise<void>((r) => (resolve = r)));
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
     expect(screen.getByRole('button', { name: 'Closing...' })).toBeDisabled();
-    await act(async () => { resolve(); });
+    await act(async () => {
+      resolve();
+    });
   });
 
   it('re-enables button if closeSession throws', async () => {
     mockCloseSession.mockRejectedValue(new Error('Network error'));
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Close Session' })).not.toBeDisabled(),
+      expect(
+        screen.getByRole('button', { name: 'Close Session' }),
+      ).not.toBeDisabled(),
     );
   });
 });

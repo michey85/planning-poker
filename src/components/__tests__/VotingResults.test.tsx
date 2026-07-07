@@ -8,7 +8,9 @@ jest.mock('@/store/useVotingStore', () => ({
   useVotingStore: jest.fn(),
 }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 
 function makeVote(id: string, userName: string, value: string | null) {
   return { id, session_id: 's1', user_name: userName, value, voted_at: '' };
@@ -16,7 +18,9 @@ function makeVote(id: string, userName: string, value: string | null) {
 
 function setupStore(votes: ReturnType<typeof makeVote>[]) {
   const state = { votes };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) => selector(state));
+  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
+    selector(state),
+  );
 }
 
 beforeEach(() => {
@@ -61,28 +65,19 @@ describe('VotingResults — average and median', () => {
   });
 
   it('computes correct median for even number of votes', () => {
-    setupStore([
-      makeVote('1', 'Alice', '2'),
-      makeVote('2', 'Bob', '8'),
-    ]);
+    setupStore([makeVote('1', 'Alice', '2'), makeVote('2', 'Bob', '8')]);
     render(<VotingResults />);
     expect(getStatValue('Median')).toBe('5.0');
   });
 
   it('excludes null votes from average and median', () => {
-    setupStore([
-      makeVote('1', 'Alice', '2'),
-      makeVote('2', 'Bob', null),
-    ]);
+    setupStore([makeVote('1', 'Alice', '2'), makeVote('2', 'Bob', null)]);
     render(<VotingResults />);
     expect(screen.getByText('2.0')).toBeInTheDocument();
   });
 
   it('excludes ? votes from average and median calculations', () => {
-    setupStore([
-      makeVote('1', 'Alice', '8'),
-      makeVote('2', 'Bob', '?'),
-    ]);
+    setupStore([makeVote('1', 'Alice', '8'), makeVote('2', 'Bob', '?')]);
     render(<VotingResults />);
     expect(screen.getByText('8.0')).toBeInTheDocument();
   });
@@ -126,10 +121,7 @@ describe('VotingResults — consensus badge', () => {
 
 describe('VotingResults — vote cards', () => {
   it('renders a card for each vote showing the user name', () => {
-    setupStore([
-      makeVote('1', 'Alice', '5'),
-      makeVote('2', 'Bob', '?'),
-    ]);
+    setupStore([makeVote('1', 'Alice', '5'), makeVote('2', 'Bob', '?')]);
     render(<VotingResults />);
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();

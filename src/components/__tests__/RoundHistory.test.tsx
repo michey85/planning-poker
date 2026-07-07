@@ -8,9 +8,16 @@ jest.mock('@/store/useVotingStore', () => ({
   useVotingStore: jest.fn(),
 }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 
-function makeRound(id: string, round_number: number, task_name: string, consensus_value: string) {
+function makeRound(
+  id: string,
+  round_number: number,
+  task_name: string,
+  consensus_value: string,
+) {
   return { id, session_id: 's1', round_number, task_name, consensus_value };
 }
 
