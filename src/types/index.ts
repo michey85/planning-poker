@@ -2,6 +2,7 @@ export interface Session {
   id: string;
   task_name: string;
   is_revealed: boolean;
+  history_enabled: boolean;
   created_at: string;
 }
 

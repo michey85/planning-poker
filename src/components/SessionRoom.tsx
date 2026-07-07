@@ -20,6 +20,7 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
   const isRevealed = useVotingStore((s) => s.isRevealed);
   const storeSessionId = useVotingStore((s) => s.sessionId);
   const sessionClosed = useVotingStore((s) => s.sessionClosed);
+  const historyEnabled = useVotingStore((s) => s.historyEnabled);
   const joinSession = useVotingStore((s) => s.joinSession);
 
   const { connectionStatus } = useRealtimeVotes(storeSessionId);
@@ -97,7 +98,7 @@ export default function SessionRoom({ sessionId }: { sessionId: string }) {
       <ModeratorControls onSessionClosed={() => router.push('/')} />
       {isRevealed && <VotingResults />}
       <ParticipantsList />
-      <RoundHistory />
+      {historyEnabled && <RoundHistory />}
     </div>
   );
 }

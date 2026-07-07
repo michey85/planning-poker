@@ -23,9 +23,13 @@ beforeEach(() => {
 describe('JoinSessionForm', () => {
   it('renders form elements', () => {
     render(<JoinSessionForm />);
-    expect(screen.getByRole('heading', { name: 'Join Session' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Join Session' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Session ID')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Join Session' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Join Session' }),
+    ).toBeInTheDocument();
   });
 
   it('shows error when submitted with empty session ID', async () => {
@@ -50,7 +54,9 @@ describe('JoinSessionForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Join Session' }));
     expect(screen.getByText('Session ID is required.')).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Session ID'), 'a');
-    expect(screen.queryByText('Session ID is required.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Session ID is required.'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows loading state and disables input while submitting', async () => {
@@ -67,15 +73,22 @@ describe('JoinSessionForm', () => {
     render(<JoinSessionForm />);
     await userEvent.type(screen.getByLabelText('Session ID'), VALID_UUID);
     await userEvent.click(screen.getByRole('button', { name: 'Join Session' }));
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith(`/session/${VALID_UUID}`));
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith(`/session/${VALID_UUID}`),
+    );
   });
 
   it('trims whitespace before validation and call', async () => {
     mockGetSession.mockResolvedValue({ id: VALID_UUID } as never);
     render(<JoinSessionForm />);
-    await userEvent.type(screen.getByLabelText('Session ID'), `  ${VALID_UUID}  `);
+    await userEvent.type(
+      screen.getByLabelText('Session ID'),
+      `  ${VALID_UUID}  `,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Join Session' }));
-    await waitFor(() => expect(mockGetSession).toHaveBeenCalledWith(VALID_UUID));
+    await waitFor(() =>
+      expect(mockGetSession).toHaveBeenCalledWith(VALID_UUID),
+    );
   });
 
   it('shows error when session is not found', async () => {
@@ -83,7 +96,9 @@ describe('JoinSessionForm', () => {
     render(<JoinSessionForm />);
     await userEvent.type(screen.getByLabelText('Session ID'), VALID_UUID);
     await userEvent.click(screen.getByRole('button', { name: 'Join Session' }));
-    await waitFor(() => expect(screen.getByText('Session not found.')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText('Session not found.')).toBeInTheDocument(),
+    );
     expect(mockPush).not.toHaveBeenCalled();
   });
 
@@ -105,7 +120,9 @@ describe('JoinSessionForm', () => {
     await userEvent.type(screen.getByLabelText('Session ID'), VALID_UUID);
     await userEvent.click(screen.getByRole('button', { name: 'Join Session' }));
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Join Session' })).not.toBeDisabled(),
+      expect(
+        screen.getByRole('button', { name: 'Join Session' }),
+      ).not.toBeDisabled(),
     );
   });
 });

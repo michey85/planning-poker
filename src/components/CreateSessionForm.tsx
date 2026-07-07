@@ -7,6 +7,7 @@ import { createSession } from '@/lib/database';
 export default function CreateSessionForm() {
   const router = useRouter();
   const [taskName, setTaskName] = useState('');
+  const [trackHistory, setTrackHistory] = useState(true);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,7 +29,7 @@ export default function CreateSessionForm() {
     setIsLoading(true);
 
     try {
-      const session = await createSession(trimmed);
+      const session = await createSession(trimmed, trackHistory);
       router.push(`/session/${session.id}`);
     } catch {
       setError('Failed to create session. Please try again.');
@@ -60,6 +61,15 @@ export default function CreateSessionForm() {
         />
         {error && <p className="text-sm text-error">{error}</p>}
       </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={trackHistory}
+          onChange={(e) => setTrackHistory(e.target.checked)}
+          className="h-4 w-4 rounded border-border accent-accent"
+        />
+        Track round history
+      </label>
       <button
         type="submit"
         disabled={isLoading}

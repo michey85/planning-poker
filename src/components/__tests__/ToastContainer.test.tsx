@@ -8,7 +8,13 @@ jest.mock('@/lib/toast', () => ({
 
 const mockSubscribe = subscribe as jest.MockedFunction<typeof subscribe>;
 
-let capturedCallback: ((toast: { id: number; message: string; type: 'success' | 'error' | 'info' }) => void) | null = null;
+let capturedCallback:
+  | ((toast: {
+      id: number;
+      message: string;
+      type: 'success' | 'error' | 'info';
+    }) => void)
+  | null = null;
 const unsubscribe = jest.fn();
 
 beforeEach(() => {
@@ -25,7 +31,11 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-function pushToast(id: number, message: string, type: 'success' | 'error' | 'info' = 'info') {
+function pushToast(
+  id: number,
+  message: string,
+  type: 'success' | 'error' | 'info' = 'info',
+) {
   act(() => {
     capturedCallback!({ id, message, type });
   });
@@ -54,7 +64,10 @@ describe('ToastContainer', () => {
   it('applies success styles for success toast', () => {
     render(<ToastContainer />);
     pushToast(1, 'Success!', 'success');
-    expect(screen.getByText('Success!')).toHaveClass('bg-green-600', 'text-white');
+    expect(screen.getByText('Success!')).toHaveClass(
+      'bg-green-600',
+      'text-white',
+    );
   });
 
   it('applies error styles for error toast', () => {

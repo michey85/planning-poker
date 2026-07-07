@@ -21,19 +21,35 @@ jest.mock('@/store/useVotingStore', () => ({
 }));
 
 // Mock all child components to isolate SessionRoom logic
-jest.mock('../ConnectionAlert', () => () => <div data-testid="connection-alert" />);
+jest.mock('../ConnectionAlert', () => () => (
+  <div data-testid="connection-alert" />
+));
 jest.mock('../TaskHeader', () => () => <div data-testid="task-header" />);
 jest.mock('../VotingCards', () => () => <div data-testid="voting-cards" />);
-jest.mock('../ModeratorControls', () => ({ onSessionClosed }: { onSessionClosed: () => void }) => (
-  <button data-testid="moderator-controls" onClick={onSessionClosed}>close</button>
-));
+jest.mock(
+  '../ModeratorControls',
+  () =>
+    ({ onSessionClosed }: { onSessionClosed: () => void }) => (
+      <button data-testid="moderator-controls" onClick={onSessionClosed}>
+        close
+      </button>
+    ),
+);
 jest.mock('../VotingResults', () => () => <div data-testid="voting-results" />);
-jest.mock('../ParticipantsList', () => () => <div data-testid="participants-list" />);
+jest.mock('../ParticipantsList', () => () => (
+  <div data-testid="participants-list" />
+));
 jest.mock('../RoundHistory', () => () => <div data-testid="round-history" />);
-jest.mock('../UsernamePrompt', () => () => <div data-testid="username-prompt" />);
+jest.mock('../UsernamePrompt', () => () => (
+  <div data-testid="username-prompt" />
+));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
-const mockUseRealtimeVotes = useRealtimeVotes as jest.MockedFunction<typeof useRealtimeVotes>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
+const mockUseRealtimeVotes = useRealtimeVotes as jest.MockedFunction<
+  typeof useRealtimeVotes
+>;
 
 const mockJoinSession = jest.fn();
 
@@ -42,17 +58,20 @@ function setupStore({
   isRevealed = false,
   sessionId = 'session-1',
   sessionClosed = false,
+  historyEnabled = true,
 }: {
   userName?: string | null;
   isRevealed?: boolean;
   sessionId?: string | null;
   sessionClosed?: boolean;
+  historyEnabled?: boolean;
 } = {}) {
   const state = {
     userName,
     isRevealed,
     sessionId,
     sessionClosed,
+    historyEnabled,
     joinSession: mockJoinSession,
   };
   mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
@@ -159,10 +178,19 @@ describe('SessionRoom — main room', () => {
     });
   });
 
+  it('does not render RoundHistory when historyEnabled is false', async () => {
+    setupStore({ historyEnabled: false });
+    render(<SessionRoom sessionId="session-1" />);
+    await waitFor(() => screen.getByTestId('voting-cards'));
+    expect(screen.queryByTestId('round-history')).not.toBeInTheDocument();
+  });
+
   it('renders guide link with correct session id', async () => {
     render(<SessionRoom sessionId="session-1" />);
     await waitFor(() => {
-      const link = screen.getByRole('link', { name: /what do these values mean/i });
+      const link = screen.getByRole('link', {
+        name: /what do these values mean/i,
+      });
       expect(link).toHaveAttribute('href', '/guide?session=session-1');
     });
   });

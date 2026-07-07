@@ -13,6 +13,7 @@ interface VotingState {
   taskName: string | null;
   isRevealed: boolean;
   sessionClosed: boolean;
+  historyEnabled: boolean;
 
   userName: string | null;
   currentUserVote: string | null;
@@ -23,10 +24,16 @@ interface VotingState {
 
   setUserName: (name: string) => Promise<void>;
   joinSession: (sessionId: string) => Promise<void>;
-  createSession: (taskName: string) => Promise<string>;
+  createSession: (
+    taskName: string,
+    historyEnabled?: boolean,
+  ) => Promise<string>;
   castVote: (value: CardValue) => Promise<void>;
   revealCards: () => Promise<void>;
-  resetVoting: (consensusValue: string, taskName?: string) => Promise<void>;
+  resetVoting: (
+    consensusValue: string | null,
+    taskName?: string,
+  ) => Promise<void>;
   renameUser: (newName: string) => Promise<void>;
   closeSession: () => Promise<void>;
   markSessionClosed: () => void;
@@ -41,6 +48,7 @@ const initialState = {
   taskName: null,
   isRevealed: false,
   sessionClosed: false,
+  historyEnabled: true,
   userName: null,
   currentUserVote: null,
   votes: [],
@@ -87,6 +95,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       sessionId: session.id,
       taskName: session.task_name,
       isRevealed: session.is_revealed,
+      historyEnabled: session.history_enabled,
       votes,
       rounds,
       userName: restoredUserName,
@@ -94,12 +103,13 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     });
   },
 
-  createSession: async (taskName) => {
-    const session = await db.createSession(taskName);
+  createSession: async (taskName, historyEnabled = true) => {
+    const session = await db.createSession(taskName, historyEnabled);
     set({
       sessionId: session.id,
       taskName: session.task_name,
       isRevealed: session.is_revealed,
+      historyEnabled: session.history_enabled,
       votes: [],
       currentUserVote: null,
     });
@@ -129,7 +139,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     }
   },
 
-  resetVoting: async (consensusValue: string, taskName?: string) => {
+  resetVoting: async (consensusValue, taskName?: string) => {
     const {
       sessionId,
       isRevealed,
@@ -137,16 +147,26 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       votes,
       rounds,
       taskName: prevTaskName,
+      historyEnabled,
     } = get();
     if (!sessionId) throw new Error('No active session');
-    const roundNumber = rounds.length + 1;
-    const roundTaskName = prevTaskName ?? '';
 
-    try {
-      await db.saveRound(sessionId, roundNumber, roundTaskName, consensusValue);
-    } catch {
-      pushToast('Failed to save round. Please try again.', 'error');
-      return;
+    if (historyEnabled) {
+      if (!consensusValue) throw new Error('Consensus value required');
+      const roundNumber = rounds.length + 1;
+      const roundTaskName = prevTaskName ?? '';
+
+      try {
+        await db.saveRound(
+          sessionId,
+          roundNumber,
+          roundTaskName,
+          consensusValue,
+        );
+      } catch {
+        pushToast('Failed to save round. Please try again.', 'error');
+        return;
+      }
     }
 
     set((state) => ({

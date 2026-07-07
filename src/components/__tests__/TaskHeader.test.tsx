@@ -7,7 +7,9 @@ jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
 jest.mock('@/store/useVotingStore');
 jest.mock('@/lib/toast', () => ({ pushToast: jest.fn() }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 
 function setupStore({
   taskName = 'Test Task',
@@ -33,7 +35,9 @@ describe('TaskHeader', () => {
   it('renders the task name', () => {
     setupStore({ taskName: 'Estimate auth feature' });
     render(<TaskHeader />);
-    expect(screen.getByRole('heading', { name: 'Estimate auth feature' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Estimate auth feature' }),
+    ).toBeInTheDocument();
   });
 
   it('shows voted count out of total', () => {
@@ -69,7 +73,9 @@ describe('TaskHeader', () => {
 
     await userEvent.click(button);
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(window.location.href);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      window.location.href,
+    );
     expect(screen.getByText('Copied!')).toBeInTheDocument();
   });
 
@@ -89,7 +95,9 @@ describe('TaskHeader', () => {
     render(<TaskHeader />);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy session link' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Copy session link' }),
+      );
     });
     expect(screen.getByText('Copied!')).toBeInTheDocument();
 

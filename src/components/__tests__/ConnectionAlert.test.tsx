@@ -15,7 +15,9 @@ describe('ConnectionAlert', () => {
   it('renders alert message when status is error', () => {
     render(<ConnectionAlert status="error" />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Realtime connection lost. Updates may be delayed.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Realtime connection lost. Updates may be delayed.'),
+    ).toBeInTheDocument();
   });
 
   it('has assertive aria-live when shown', () => {

@@ -17,6 +17,7 @@ export default function ModeratorControls({
   const taskName = useVotingStore((s) => s.taskName);
   const isRevealed = useVotingStore((s) => s.isRevealed);
   const votes = useVotingStore((s) => s.votes);
+  const historyEnabled = useVotingStore((s) => s.historyEnabled);
   const isModerator = useVotingStore(selectIsModerator);
 
   const [showNewRound, setShowNewRound] = useState(false);
@@ -55,12 +56,12 @@ export default function ModeratorControls({
   };
 
   const confirmNewRound = async () => {
-    if (!consensusValue) return;
+    if (historyEnabled && !consensusValue) return;
     const name = newTaskName.trim();
     setIsResetting(true);
     try {
       await resetVoting(
-        consensusValue,
+        historyEnabled ? consensusValue : null,
         name && name !== taskName ? name : undefined,
       );
       setShowNewRound(false);
@@ -119,30 +120,32 @@ export default function ModeratorControls({
                 placeholder="Task name for next round"
                 className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent"
               />
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-sm text-foreground/60 w-full">
-                  Consensus:
-                </span>
-                {CARD_VALUES.map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setConsensusValue(v)}
-                    className={`rounded px-2.5 py-1 text-sm font-medium border transition-colors ${
-                      consensusValue === v
-                        ? 'bg-accent text-white border-accent'
-                        : 'border-border text-foreground/60 hover:border-accent'
-                    }`}
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
+              {historyEnabled && (
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-sm text-foreground/60 w-full">
+                    Consensus:
+                  </span>
+                  {CARD_VALUES.map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setConsensusValue(v)}
+                      className={`rounded px-2.5 py-1 text-sm font-medium border transition-colors ${
+                        consensusValue === v
+                          ? 'bg-accent text-white border-accent'
+                          : 'border-border text-foreground/60 hover:border-accent'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={confirmNewRound}
-                  disabled={isResetting || !consensusValue}
+                  disabled={isResetting || (historyEnabled && !consensusValue)}
                   className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
                 >
                   {isResetting ? 'Starting...' : 'Start Round'}

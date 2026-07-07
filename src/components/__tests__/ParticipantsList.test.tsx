@@ -9,11 +9,24 @@ jest.mock('@/store/useVotingStore', () => ({
   useVotingStore: jest.fn(),
 }));
 
-const mockUseVotingStore = useVotingStore as jest.MockedFunction<typeof useVotingStore>;
+const mockUseVotingStore = useVotingStore as jest.MockedFunction<
+  typeof useVotingStore
+>;
 const mockRenameUser = jest.fn();
 
-function makeVote(id: string, userName: string, value: string | null, votedAt: string) {
-  return { id, session_id: 's1', user_name: userName, value, voted_at: votedAt };
+function makeVote(
+  id: string,
+  userName: string,
+  value: string | null,
+  votedAt: string,
+) {
+  return {
+    id,
+    session_id: 's1',
+    user_name: userName,
+    value,
+    voted_at: votedAt,
+  };
 }
 
 function setupStore({
@@ -114,9 +127,7 @@ describe('ParticipantsList — card flip', () => {
   });
 
   it('shows ⏳ on back for participants who have not voted', () => {
-    const withPending = [
-      makeVote('v1', 'Alice', null, '2024-01-01T10:00:00Z'),
-    ];
+    const withPending = [makeVote('v1', 'Alice', null, '2024-01-01T10:00:00Z')];
     setupStore({ votes: withPending, isRevealed: false });
     render(<ParticipantsList />);
     expect(screen.getByText('⏳')).toBeInTheDocument();
@@ -135,15 +146,21 @@ describe('ParticipantsList — rename flow', () => {
     setupStore({ votes: twoVotes, userName: 'Alice' });
     render(<ParticipantsList />);
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
-    expect(screen.getByRole('button', { name: 'Confirm rename' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cancel rename' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Cancel rename' }),
+    ).toBeInTheDocument();
   });
 
   it('Cancel rename hides the input and restores the name display', async () => {
     setupStore({ votes: twoVotes, userName: 'Alice' });
     render(<ParticipantsList />);
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Cancel rename' }),
+    );
     expect(screen.queryByRole('textbox')).toBeNull();
     expect(screen.getByText(/Alice/)).toBeInTheDocument();
   });
@@ -160,7 +177,9 @@ describe('ParticipantsList — rename flow', () => {
     setupStore({ votes: twoVotes, userName: 'Alice' });
     render(<ParticipantsList />);
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
     expect(mockRenameUser).not.toHaveBeenCalled();
     expect(screen.queryByRole('textbox')).toBeNull();
   });
@@ -171,8 +190,12 @@ describe('ParticipantsList — rename flow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.type(screen.getByRole('textbox'), 'A');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
-    expect(screen.getByText('Name must be at least 2 characters')).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
+    expect(
+      screen.getByText('Name must be at least 2 characters'),
+    ).toBeInTheDocument();
     expect(mockRenameUser).not.toHaveBeenCalled();
   });
 
@@ -182,7 +205,9 @@ describe('ParticipantsList — rename flow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.type(screen.getByRole('textbox'), 'Bob');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
     expect(screen.getByText('Name already in use')).toBeInTheDocument();
     expect(mockRenameUser).not.toHaveBeenCalled();
   });
@@ -193,7 +218,9 @@ describe('ParticipantsList — rename flow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.type(screen.getByRole('textbox'), '  Carol  ');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
     await waitFor(() => expect(mockRenameUser).toHaveBeenCalledWith('Carol'));
     expect(screen.queryByRole('textbox')).toBeNull();
   });
@@ -215,7 +242,9 @@ describe('ParticipantsList — rename flow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.type(screen.getByRole('textbox'), 'Carol');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
     await waitFor(() =>
       expect(screen.getByText('Failed to rename')).toBeInTheDocument(),
     );
@@ -231,10 +260,18 @@ describe('ParticipantsList — rename loading state', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.type(screen.getByRole('textbox'), 'Carol');
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm rename' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    );
     expect(screen.getByRole('textbox')).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Confirm rename' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Cancel rename' })).toBeDisabled();
-    await act(async () => { resolve(); });
+    expect(
+      screen.getByRole('button', { name: 'Confirm rename' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Cancel rename' }),
+    ).toBeDisabled();
+    await act(async () => {
+      resolve();
+    });
   });
 });

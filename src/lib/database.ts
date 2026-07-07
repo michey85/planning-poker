@@ -5,10 +5,13 @@ const supabase = createClient();
 
 // --- Sessions ---
 
-export async function createSession(taskName: string): Promise<Session> {
+export async function createSession(
+  taskName: string,
+  historyEnabled = true,
+): Promise<Session> {
   const { data, error } = await supabase
     .from('sessions')
-    .insert({ task_name: taskName })
+    .insert({ task_name: taskName, history_enabled: historyEnabled })
     .select()
     .single();
 
