@@ -4,7 +4,7 @@
 
 - Node.js 18+
 - npm
-- A Supabase project with the required tables (see [Database Schema](./database-schema.md))
+- A Supabase project with the required tables (see [Database Schema](./database-schema.md)), or the local Supabase CLI (see below)
 
 ## Environment Variables
 
@@ -14,6 +14,24 @@ Create `.env.local` in the project root:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+## Local Supabase (optional)
+
+To run Supabase locally instead of against the hosted project (requires Docker Desktop and the `supabase` CLI, installed via `brew install supabase/tap/supabase`):
+
+```bash
+supabase start    # starts local Postgres, API, Studio, applies supabase/migrations/
+supabase stop     # stops the local stack
+```
+
+`supabase start` prints local `API_URL` and `ANON_KEY` values — put those in `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<local anon key from `supabase start` output>
+```
+
+Studio UI: http://127.0.0.1:54323
 
 ## Installation
 

@@ -62,6 +62,17 @@ Tailwind 4 with no config file (uses CSS-based configuration)
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anonymous key
 
+## Local Supabase
+
+Requires Docker Desktop running and the `supabase` CLI (`brew install supabase/tap/supabase`).
+
+```bash
+supabase start    # starts local stack, applies supabase/migrations/
+supabase stop     # stops it
+```
+
+Point `.env.local` at the local instance using the `API_URL`/`ANON_KEY` printed by `supabase start` (Studio at http://127.0.0.1:54323).
+
 ## Key Specification
 
 See `SPEC.md` for the full technical specification including database schema SQL, TypeScript interfaces, Zustand store shape, implementation phases, and user flows.
