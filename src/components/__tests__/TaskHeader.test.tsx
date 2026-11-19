@@ -1,4 +1,4 @@
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useVotingStore } from '@/store/useVotingStore';
 import TaskHeader from '../TaskHeader';
@@ -105,5 +105,53 @@ describe('TaskHeader', () => {
     expect(screen.getByText('Copy link')).toBeInTheDocument();
 
     jest.useRealTimers();
+  });
+
+  describe('QR code', () => {
+    beforeAll(() => {
+      HTMLDialogElement.prototype.showModal = jest.fn(function (
+        this: HTMLDialogElement,
+      ) {
+        this.setAttribute('open', '');
+      });
+      HTMLDialogElement.prototype.close = jest.fn(function (
+        this: HTMLDialogElement,
+      ) {
+        this.removeAttribute('open');
+      });
+    });
+
+    it('renders the Show QR code button', () => {
+      setupStore({});
+      render(<TaskHeader />);
+      expect(
+        screen.getByRole('button', { name: 'Show QR code' }),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('opens and closes the QR modal', async () => {
+      setupStore({});
+      render(<TaskHeader />);
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Show QR code' }),
+      );
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Scan to vote')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('does not open the QR modal when sessionId is absent', async () => {
+      setupStore({ sessionId: '' });
+      render(<TaskHeader />);
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Show QR code' }),
+      );
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });

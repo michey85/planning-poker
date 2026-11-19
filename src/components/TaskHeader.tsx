@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import { pushToast } from '@/lib/toast';
 import { useVotingStore } from '@/store/useVotingStore';
+import RoomQrModal from './RoomQrModal';
+
+const getRoomUrl = () => window.location.href;
 
 export default function TaskHeader() {
   const taskName = useVotingStore((s) => s.taskName);
   const sessionId = useVotingStore((s) => s.sessionId);
   const votes = useVotingStore((s) => s.votes);
   const [copied, setCopied] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   const votedCount = votes.filter((v) => v.value !== null).length;
   const totalCount = votes.length;
@@ -23,10 +27,15 @@ export default function TaskHeader() {
 
   const copyId = async () => {
     if (!sessionId) return;
-    await navigator.clipboard.writeText(window.location.href);
+    await navigator.clipboard.writeText(getRoomUrl());
     setCopied(true);
     pushToast('Session link copied!', 'success');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const openQr = () => {
+    if (!sessionId) return;
+    setQrUrl(getRoomUrl());
   };
 
   return (
@@ -67,6 +76,29 @@ export default function TaskHeader() {
           )}
           {copied ? 'Copied!' : 'Copy link'}
         </button>
+        <button
+          type="button"
+          onClick={openQr}
+          aria-label="Show QR code"
+          className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 text-xs transition-colors hover:border-accent hover:text-foreground"
+        >
+          <svg
+            className="size-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M17 20h4v-3" />
+          </svg>
+          Show QR
+        </button>
         <span aria-live="polite">
           {votedCount} of {totalCount} voted
         </span>
@@ -79,6 +111,7 @@ export default function TaskHeader() {
           />
         </div>
       )}
+      {qrUrl && <RoomQrModal url={qrUrl} onClose={() => setQrUrl(null)} />}
     </div>
   );
 }
