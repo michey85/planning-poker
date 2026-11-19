@@ -5,12 +5,14 @@ import { pushToast } from '@/lib/toast';
 import { useVotingStore } from '@/store/useVotingStore';
 import RoomQrModal from './RoomQrModal';
 
+const getRoomUrl = () => window.location.href;
+
 export default function TaskHeader() {
   const taskName = useVotingStore((s) => s.taskName);
   const sessionId = useVotingStore((s) => s.sessionId);
   const votes = useVotingStore((s) => s.votes);
   const [copied, setCopied] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   const votedCount = votes.filter((v) => v.value !== null).length;
   const totalCount = votes.length;
@@ -25,10 +27,15 @@ export default function TaskHeader() {
 
   const copyId = async () => {
     if (!sessionId) return;
-    await navigator.clipboard.writeText(window.location.href);
+    await navigator.clipboard.writeText(getRoomUrl());
     setCopied(true);
     pushToast('Session link copied!', 'success');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const openQr = () => {
+    if (!sessionId) return;
+    setQrUrl(getRoomUrl());
   };
 
   return (
@@ -71,7 +78,7 @@ export default function TaskHeader() {
         </button>
         <button
           type="button"
-          onClick={() => setQrOpen(true)}
+          onClick={openQr}
           aria-label="Show QR code"
           className="inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 text-xs transition-colors hover:border-accent hover:text-foreground"
         >
@@ -104,12 +111,7 @@ export default function TaskHeader() {
           />
         </div>
       )}
-      {qrOpen && (
-        <RoomQrModal
-          url={window.location.href}
-          onClose={() => setQrOpen(false)}
-        />
-      )}
+      {qrUrl && <RoomQrModal url={qrUrl} onClose={() => setQrUrl(null)} />}
     </div>
   );
 }

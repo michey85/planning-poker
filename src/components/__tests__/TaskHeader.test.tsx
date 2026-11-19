@@ -143,5 +143,15 @@ describe('TaskHeader', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Close' }));
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+
+    it('does not open the QR modal when sessionId is absent', async () => {
+      setupStore({ sessionId: '' });
+      render(<TaskHeader />);
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Show QR code' }),
+      );
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });
