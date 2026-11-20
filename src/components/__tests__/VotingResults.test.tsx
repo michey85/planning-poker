@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import VotingResults from '../VotingResults';
 
 jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
@@ -18,8 +18,8 @@ function makeVote(id: string, userName: string, value: string | null) {
 
 function setupStore(votes: ReturnType<typeof makeVote>[]) {
   const state = { votes };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector(state),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector(state as unknown as VotingState),
   );
 }
 

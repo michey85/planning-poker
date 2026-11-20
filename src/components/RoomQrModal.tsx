@@ -1,5 +1,10 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { type MouseEvent, type SyntheticEvent, useEffect, useRef } from 'react';
+import {
+  type PointerEvent,
+  type SyntheticEvent,
+  useEffect,
+  useRef,
+} from 'react';
 
 type Props = {
   url: string;
@@ -16,22 +21,52 @@ export default function RoomQrModal({ url, onClose }: Props) {
     return () => dialog.close();
   }, []);
 
+  // StrictMode's effect cleanup calls close() and the effect then reopens the
+  // dialog; the queued `close` event lands while it's open again — ignore it.
+  const handleClose = () => {
+    if (dialogRef.current?.open) return;
+    onClose();
+  };
+
   const handleCancel = (e: SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault();
     onClose();
   };
 
-  const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
-    if (e.target === e.currentTarget) onClose();
+  // Light-dismiss fallback for browsers without `closedby` (Safari).
+  // Compare the pointer to the dialog box instead of checking event.target,
+  // and require both press and release outside so a drag doesn't dismiss.
+  const pressedOutside = useRef(false);
+  const isOutside = (e: PointerEvent<HTMLDialogElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return (
+      e.clientX < r.left ||
+      e.clientX > r.right ||
+      e.clientY < r.top ||
+      e.clientY > r.bottom
+    );
+  };
+  const needsFallback = () => !('closedBy' in HTMLDialogElement.prototype);
+
+  const handlePointerDown = (e: PointerEvent<HTMLDialogElement>) => {
+    pressedOutside.current = needsFallback() && isOutside(e);
+  };
+
+  const handlePointerUp = (e: PointerEvent<HTMLDialogElement>) => {
+    if (pressedOutside.current && isOutside(e)) onClose();
+    pressedOutside.current = false;
   };
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape is handled natively via onCancel
     <dialog
       ref={dialogRef}
       aria-label="Room QR code"
+      // closedby isn't in React's DOM types yet
+      {...({ closedby: 'any' } as object)}
       onCancel={handleCancel}
-      onClick={handleBackdropClick}
+      onClose={handleClose}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       className="m-auto rounded-xl border border-border bg-background p-0 text-foreground backdrop:bg-black/60"
     >
       <div className="relative flex flex-col items-center gap-4 p-6 sm:p-8">

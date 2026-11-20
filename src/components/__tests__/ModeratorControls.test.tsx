@@ -1,6 +1,6 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import ModeratorControls from '../ModeratorControls';
 
 jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
@@ -50,8 +50,8 @@ function setupStore({
     resetVoting: mockResetVoting,
     closeSession: mockCloseSession,
   };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector(state),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector(state as unknown as VotingState),
   );
 }
 
@@ -60,8 +60,28 @@ beforeEach(() => {
   mockRevealCards.mockResolvedValue(undefined);
   mockResetVoting.mockResolvedValue(undefined);
   mockCloseSession.mockResolvedValue(undefined);
-  window.confirm = jest.fn().mockReturnValue(true);
 });
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = jest.fn(function (
+    this: HTMLDialogElement,
+  ) {
+    this.setAttribute('open', '');
+  });
+  HTMLDialogElement.prototype.close = jest.fn(function (
+    this: HTMLDialogElement,
+  ) {
+    this.removeAttribute('open');
+  });
+});
+
+async function confirmCloseSession() {
+  await userEvent.click(screen.getByRole('button', { name: 'Close Session' }));
+  const dialog = screen.getByRole('dialog', { name: 'Close this session?' });
+  await userEvent.click(
+    within(dialog).getByRole('button', { name: 'Close session' }),
+  );
+}
 
 const moderatorVotes = [
   makeVote('Alice', '3', '2024-01-01T10:00:00Z'),
@@ -269,20 +289,45 @@ describe('ModeratorControls — Close Session', () => {
     const onSessionClosed = jest.fn();
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={onSessionClosed} />);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Close Session' }),
-    );
+    await confirmCloseSession();
     await waitFor(() => expect(mockCloseSession).toHaveBeenCalledTimes(1));
     expect(onSessionClosed).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call closeSession when user cancels confirmation', async () => {
-    (window.confirm as jest.Mock).mockReturnValue(false);
+  it('opens a confirmation dialog instead of closing immediately', async () => {
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
     await userEvent.click(
       screen.getByRole('button', { name: 'Close Session' }),
     );
+    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+    expect(
+      screen.getByRole('dialog', { name: 'Close this session?' }),
+    ).toBeInTheDocument();
+    expect(mockCloseSession).not.toHaveBeenCalled();
+  });
+
+  it('focuses Keep session and describes the warning in the dialog', async () => {
+    setupStore({ votes: moderatorVotes, userName: 'Alice' });
+    render(<ModeratorControls onSessionClosed={jest.fn()} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
+    expect(screen.getByRole('button', { name: 'Keep session' })).toHaveFocus();
+    expect(
+      screen.getByRole('dialog', { name: 'Close this session?' }),
+    ).toHaveAccessibleDescription(/cannot be undone/);
+  });
+
+  it('does not call closeSession when user keeps the session', async () => {
+    setupStore({ votes: moderatorVotes, userName: 'Alice' });
+    render(<ModeratorControls onSessionClosed={jest.fn()} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Keep session' }));
+    expect(HTMLDialogElement.prototype.close).toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(mockCloseSession).not.toHaveBeenCalled();
   });
 
@@ -291,9 +336,7 @@ describe('ModeratorControls — Close Session', () => {
     mockCloseSession.mockReturnValue(new Promise<void>((r) => (resolve = r)));
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Close Session' }),
-    );
+    await confirmCloseSession();
     expect(screen.getByRole('button', { name: 'Closing...' })).toBeDisabled();
     await act(async () => {
       resolve();
@@ -304,9 +347,7 @@ describe('ModeratorControls — Close Session', () => {
     mockCloseSession.mockRejectedValue(new Error('Network error'));
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Close Session' }),
-    );
+    await confirmCloseSession();
     await waitFor(() =>
       expect(
         screen.getByRole('button', { name: 'Close Session' }),

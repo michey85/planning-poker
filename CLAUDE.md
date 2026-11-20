@@ -57,6 +57,10 @@ Tailwind 4 with no config file (uses CSS-based configuration)
 
 **Card values**: Fibonacci sequence `['1', '2', '3', '5', '8', '13', '21', '?']`
 
+## Browser Support
+
+This project's Baseline target is Baseline 2025. Features that became Baseline in 2025 or earlier can be used without fallbacks; newer or limited-availability features need a fallback.
+
 ## Environment Variables
 
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL

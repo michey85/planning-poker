@@ -1,10 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import RoomQrModal from '../RoomQrModal';
 
 const URL = 'https://poker.example/session/abc-123';
 
 beforeAll(() => {
+  // jsdom has no PointerEvent; without it fireEvent drops clientX/clientY
+  if (!window.PointerEvent) {
+    window.PointerEvent = class extends MouseEvent {} as typeof PointerEvent;
+  }
   HTMLDialogElement.prototype.showModal = jest.fn(function (
     this: HTMLDialogElement,
   ) {
@@ -53,12 +58,89 @@ describe('RoomQrModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose on backdrop click but not on content click', () => {
+  it('sets closedby="any" for native light dismiss', () => {
+    render(<RoomQrModal url={URL} onClose={jest.fn()} />);
+    expect(screen.getByRole('dialog')).toHaveAttribute('closedby', 'any');
+  });
+
+  it('calls onClose on native close event', () => {
     const onClose = jest.fn();
     render(<RoomQrModal url={URL} onClose={onClose} />);
-    fireEvent.click(screen.getByText('Scan to vote'));
-    expect(onClose).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('dialog'));
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    dialog.close();
+    fireEvent(dialog, new Event('close'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a close event that arrives while the dialog is open (StrictMode remount)', () => {
+    const onClose = jest.fn();
+    render(
+      <StrictMode>
+        <RoomQrModal url={URL} onClose={onClose} />
+      </StrictMode>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    fireEvent(dialog, new Event('close'));
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  describe('light-dismiss fallback (no closedby support)', () => {
+    const press = (el: Element, x: number, y: number) => {
+      fireEvent.pointerDown(el, { clientX: x, clientY: y });
+      fireEvent.pointerUp(el, { clientX: x, clientY: y });
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(HTMLDialogElement.prototype, 'getBoundingClientRect')
+        .mockReturnValue({
+          left: 100,
+          right: 400,
+          top: 100,
+          bottom: 400,
+        } as DOMRect);
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('closes on press and release outside the dialog box', () => {
+      const onClose = jest.fn();
+      render(<RoomQrModal url={URL} onClose={onClose} />);
+      press(screen.getByRole('dialog'), 10, 10);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close on press inside the dialog box', () => {
+      const onClose = jest.fn();
+      render(<RoomQrModal url={URL} onClose={onClose} />);
+      press(screen.getByRole('dialog'), 200, 200);
+      press(screen.getByText('Scan to vote'), 200, 200);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does not close when a drag starts inside and ends outside', () => {
+      const onClose = jest.fn();
+      render(<RoomQrModal url={URL} onClose={onClose} />);
+      const dialog = screen.getByRole('dialog');
+      fireEvent.pointerDown(dialog, { clientX: 200, clientY: 200 });
+      fireEvent.pointerUp(dialog, { clientX: 10, clientY: 10 });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('is skipped when the browser supports closedby', () => {
+      Object.defineProperty(HTMLDialogElement.prototype, 'closedBy', {
+        configurable: true,
+        value: 'any',
+      });
+      try {
+        const onClose = jest.fn();
+        render(<RoomQrModal url={URL} onClose={onClose} />);
+        press(screen.getByRole('dialog'), 10, 10);
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        delete (HTMLDialogElement.prototype as { closedBy?: string }).closedBy;
+      }
+    });
   });
 });

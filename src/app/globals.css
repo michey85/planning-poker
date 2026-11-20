@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --accent: #6d28d9;
-  --accent-hover: #5b21b6;
-  --muted: #f4f4f5;
-  --border: #e4e4e7;
-  --error: #dc2626;
+  color-scheme: light dark;
+  --background: light-dark(#ffffff, #0a0a0a);
+  --foreground: light-dark(#171717, #ededed);
+  --accent: light-dark(#6d28d9, #8b5cf6);
+  --accent-hover: light-dark(#5b21b6, #7c3aed);
+  --muted: light-dark(#f4f4f5, #1c1c1e);
+  --border: light-dark(#e4e4e7, #2e2e32);
+  --error: light-dark(#dc2626, #ef4444);
 }
 
 @theme inline {
@@ -22,16 +23,14 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --accent: #8b5cf6;
-    --accent-hover: #7c3aed;
-    --muted: #1c1c1e;
-    --border: #2e2e32;
-    --error: #ef4444;
-  }
+/* Keep scroll gestures inside modal dialogs from scrolling the page */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 body {

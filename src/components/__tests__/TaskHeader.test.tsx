@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import TaskHeader from '../TaskHeader';
 
 jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
@@ -20,8 +20,8 @@ function setupStore({
   sessionId?: string;
   votes?: { value: string | null }[];
 }) {
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector({ taskName, sessionId, votes }),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector({ taskName, sessionId, votes } as unknown as VotingState),
   );
 }
 

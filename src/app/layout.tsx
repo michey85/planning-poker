@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import ToastContainer from '@/components/ToastContainer';
 import './globals.css';
@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Planning Poker',
   description: 'Real-time collaborative estimation for Scrum teams.',
+};
+
+export const viewport: Viewport = {
+  colorScheme: 'light dark',
 };
 
 export default function RootLayout({
