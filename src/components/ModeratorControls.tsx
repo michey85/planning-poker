@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { selectIsModerator, useVotingStore } from '@/store/useVotingStore';
 import { CARD_VALUES } from '@/types';
 
@@ -28,6 +28,8 @@ export default function ModeratorControls({
   const [consensusValue, setConsensusValue] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const confirmDialogRef = useRef<HTMLDialogElement>(null);
+  const confirmTitleId = useId();
   const allVoted = votes.length > 0 && votes.every((v) => v.value !== null);
 
   useEffect(() => {
@@ -71,14 +73,12 @@ export default function ModeratorControls({
     }
   };
 
+  const openCloseConfirm = () => {
+    confirmDialogRef.current?.showModal();
+  };
+
   const handleCloseSession = async () => {
-    if (
-      !window.confirm(
-        'Are you sure you want to close this session? This action cannot be undone and all participants will be disconnected.',
-      )
-    ) {
-      return;
-    }
+    confirmDialogRef.current?.close();
     setIsClosing(true);
     try {
       await closeSession();
@@ -181,12 +181,42 @@ export default function ModeratorControls({
         <div className="mt-4 border-t border-border pt-6 order-10">
           <button
             type="button"
-            onClick={handleCloseSession}
+            onClick={openCloseConfirm}
             disabled={isClosing}
             className="rounded-lg border border-red-500 bg-transparent px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500 hover:text-white disabled:opacity-50"
           >
             {isClosing ? 'Closing...' : 'Close Session'}
           </button>
+          <dialog
+            ref={confirmDialogRef}
+            aria-labelledby={confirmTitleId}
+            className="m-auto max-w-sm rounded-xl border border-border bg-background p-6 text-foreground backdrop:bg-black/60"
+          >
+            <h2 id={confirmTitleId} className="text-lg font-semibold">
+              Close this session?
+            </h2>
+            <p className="mt-2 text-sm text-foreground/60">
+              This action cannot be undone and all participants will be
+              disconnected.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => confirmDialogRef.current?.close()}
+                className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
+              >
+                Keep session
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseSession}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+              >
+                Close session
+              </button>
+            </div>
+          </dialog>
         </div>
       )}
     </>
