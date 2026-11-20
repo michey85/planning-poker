@@ -101,7 +101,7 @@ describe('ParticipantsList — card flip', () => {
     setupStore({ votes: twoVotes, isRevealed: false });
     render(<ParticipantsList />);
     const cards = document.querySelectorAll('.card-flip');
-    cards.forEach((card) => expect(card).not.toHaveClass('card-flipped'));
+    for (const card of cards) expect(card).not.toHaveClass('card-flipped');
   });
 
   it('applies card-flipped class to all cards when revealed', () => {
@@ -109,7 +109,7 @@ describe('ParticipantsList — card flip', () => {
     render(<ParticipantsList />);
     const cards = document.querySelectorAll('.card-flip');
     expect(cards.length).toBe(2);
-    cards.forEach((card) => expect(card).toHaveClass('card-flipped'));
+    for (const card of cards) expect(card).toHaveClass('card-flipped');
   });
 
   it('shows vote value on front when revealed', () => {

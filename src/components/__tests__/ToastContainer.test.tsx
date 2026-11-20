@@ -36,8 +36,10 @@ function pushToast(
   message: string,
   type: 'success' | 'error' | 'info' = 'info',
 ) {
+  const cb = capturedCallback;
+  if (!cb) throw new Error('Toast listener was not subscribed');
   act(() => {
-    capturedCallback!({ id, message, type });
+    cb({ id, message, type });
   });
 }
 

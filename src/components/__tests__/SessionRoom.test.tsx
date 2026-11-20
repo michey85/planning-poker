@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { useVotingStore } from '@/store/useVotingStore';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
+import { useVotingStore } from '@/store/useVotingStore';
 import SessionRoom from '../SessionRoom';
 
 const mockPush = jest.fn();
@@ -30,7 +30,11 @@ jest.mock(
   '../ModeratorControls',
   () =>
     ({ onSessionClosed }: { onSessionClosed: () => void }) => (
-      <button data-testid="moderator-controls" onClick={onSessionClosed}>
+      <button
+        type="button"
+        data-testid="moderator-controls"
+        onClick={onSessionClosed}
+      >
         close
       </button>
     ),
