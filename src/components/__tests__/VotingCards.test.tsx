@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import { CARD_VALUES } from '@/types';
 import VotingCards from '../VotingCards';
 
@@ -20,8 +20,8 @@ function setupStore({
   isRevealed = false,
 } = {}) {
   const state = { castVote: mockCastVote, currentUserVote, isRevealed };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector(state),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector(state as unknown as VotingState),
   );
 }
 

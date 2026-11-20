@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import RoundHistory from '../RoundHistory';
 
 jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
@@ -22,8 +22,8 @@ function makeRound(
 }
 
 function setupStore(rounds: ReturnType<typeof makeRound>[]) {
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector({ rounds }),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector({ rounds } as unknown as VotingState),
   );
 }
 

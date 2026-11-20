@@ -8,7 +8,7 @@ import {
 import { pushToast } from '@/lib/toast';
 import type { CardValue, Round, Vote } from '@/types';
 
-interface VotingState {
+export interface VotingState {
   sessionId: string | null;
   taskName: string | null;
   isRevealed: boolean;

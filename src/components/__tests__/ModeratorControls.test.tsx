@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import ModeratorControls from '../ModeratorControls';
 
 jest.mock('@/utils/supabase/client', () => ({ createClient: jest.fn() }));
@@ -50,8 +50,8 @@ function setupStore({
     resetVoting: mockResetVoting,
     closeSession: mockCloseSession,
   };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector(state),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector(state as unknown as VotingState),
   );
 }
 

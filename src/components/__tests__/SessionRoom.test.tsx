@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { useRealtimeVotes } from '@/hooks/useRealtimeVotes';
-import { useVotingStore } from '@/store/useVotingStore';
+import { useVotingStore, type VotingState } from '@/store/useVotingStore';
 import SessionRoom from '../SessionRoom';
 
 const mockPush = jest.fn();
@@ -78,8 +78,8 @@ function setupStore({
     historyEnabled,
     joinSession: mockJoinSession,
   };
-  mockUseVotingStore.mockImplementation((selector: (s: unknown) => unknown) =>
-    selector(state),
+  mockUseVotingStore.mockImplementation((selector) =>
+    selector(state as unknown as VotingState),
   );
 }
 
