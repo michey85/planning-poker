@@ -307,6 +307,18 @@ describe('ModeratorControls — Close Session', () => {
     expect(mockCloseSession).not.toHaveBeenCalled();
   });
 
+  it('focuses Keep session and describes the warning in the dialog', async () => {
+    setupStore({ votes: moderatorVotes, userName: 'Alice' });
+    render(<ModeratorControls onSessionClosed={jest.fn()} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Close Session' }),
+    );
+    expect(screen.getByRole('button', { name: 'Keep session' })).toHaveFocus();
+    expect(
+      screen.getByRole('dialog', { name: 'Close this session?' }),
+    ).toHaveAccessibleDescription(/cannot be undone/);
+  });
+
   it('does not call closeSession when user keeps the session', async () => {
     setupStore({ votes: moderatorVotes, userName: 'Alice' });
     render(<ModeratorControls onSessionClosed={jest.fn()} />);

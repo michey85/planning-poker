@@ -29,7 +29,9 @@ export default function ModeratorControls({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
+  const keepButtonRef = useRef<HTMLButtonElement>(null);
   const confirmTitleId = useId();
+  const confirmDescId = useId();
   const allVoted = votes.length > 0 && votes.every((v) => v.value !== null);
 
   useEffect(() => {
@@ -75,6 +77,8 @@ export default function ModeratorControls({
 
   const openCloseConfirm = () => {
     confirmDialogRef.current?.showModal();
+    // Safe default: focus the non-destructive action
+    keepButtonRef.current?.focus();
   };
 
   const handleCloseSession = async () => {
@@ -190,19 +194,20 @@ export default function ModeratorControls({
           <dialog
             ref={confirmDialogRef}
             aria-labelledby={confirmTitleId}
+            aria-describedby={confirmDescId}
             className="m-auto max-w-sm rounded-xl border border-border bg-background p-6 text-foreground backdrop:bg-black/60"
           >
             <h2 id={confirmTitleId} className="text-lg font-semibold">
               Close this session?
             </h2>
-            <p className="mt-2 text-sm text-foreground/60">
+            <p id={confirmDescId} className="mt-2 text-sm text-foreground/60">
               This action cannot be undone and all participants will be
               disconnected.
             </p>
             <div className="mt-6 flex justify-end gap-2">
               <button
+                ref={keepButtonRef}
                 type="button"
-                autoFocus
                 onClick={() => confirmDialogRef.current?.close()}
                 className="rounded-lg border border-border px-4 py-2 text-sm text-foreground/60 transition-colors hover:border-accent"
               >

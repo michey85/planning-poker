@@ -21,6 +21,13 @@ export default function RoomQrModal({ url, onClose }: Props) {
     return () => dialog.close();
   }, []);
 
+  // StrictMode's effect cleanup calls close() and the effect then reopens the
+  // dialog; the queued `close` event lands while it's open again — ignore it.
+  const handleClose = () => {
+    if (dialogRef.current?.open) return;
+    onClose();
+  };
+
   const handleCancel = (e: SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault();
     onClose();
@@ -57,7 +64,7 @@ export default function RoomQrModal({ url, onClose }: Props) {
       // closedby isn't in React's DOM types yet
       {...({ closedby: 'any' } as object)}
       onCancel={handleCancel}
-      onClose={onClose}
+      onClose={handleClose}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       className="m-auto rounded-xl border border-border bg-background p-0 text-foreground backdrop:bg-black/60"

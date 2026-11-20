@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import RoomQrModal from '../RoomQrModal';
 
 const URL = 'https://poker.example/session/abc-123';
@@ -65,8 +66,23 @@ describe('RoomQrModal', () => {
   it('calls onClose on native close event', () => {
     const onClose = jest.fn();
     render(<RoomQrModal url={URL} onClose={onClose} />);
-    fireEvent(screen.getByRole('dialog'), new Event('close'));
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    dialog.close();
+    fireEvent(dialog, new Event('close'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a close event that arrives while the dialog is open (StrictMode remount)', () => {
+    const onClose = jest.fn();
+    render(
+      <StrictMode>
+        <RoomQrModal url={URL} onClose={onClose} />
+      </StrictMode>,
+    );
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    fireEvent(dialog, new Event('close'));
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   describe('light-dismiss fallback (no closedby support)', () => {
